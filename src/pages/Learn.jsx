@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { CURRICULUM } from '@/components/learn/curriculum';
 import ModuleCard from '@/components/modules/ModuleCard';
+import ModulePathItem from '@/components/learn/ModulePathItem';
 import BadgeStrip from '@/components/learn/BadgeStrip';
 import PlaygroundCard from '@/components/learn/PlaygroundCard';
 import { Button } from '@/components/ui/button';
@@ -118,11 +119,14 @@ export default function Learn() {
       {/* Main Content */}
       <div className="container mx-auto px-4 -mt-8">
         
-        {/* Modules Grid */}
-        <div className="grid gap-6">
-          <h2 className="text-2xl font-bold text-white mt-8 mb-4">Learning Path</h2>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Modules Path */}
+        <div className="mb-20">
+          <h2 className="text-2xl font-bold text-white mt-8 mb-10">Learning Path</h2>
+
+          <div className="max-w-4xl mx-auto relative space-y-8">
+            {/* Connecting Line */}
+            <div className="absolute left-[35px] top-4 bottom-4 w-0.5 bg-white/5 -z-10" />
+
             {CURRICULUM.map((module, index) => {
               // Module Locking Logic
               // Module 0 is always unlocked.
@@ -131,8 +135,9 @@ export default function Learn() {
               const isLocked = index > 0 && !progress?.completed_modules?.includes(prevModule.id);
 
               return (
-                <ModuleCard
+                <ModulePathItem
                   key={module.id}
+                  index={index}
                   module={module}
                   progress={{ completedLessons: progress?.completed_lessons || [] }}
                   isLocked={isLocked}
