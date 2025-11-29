@@ -4,7 +4,7 @@ import { Clock, CheckCircle, Lock, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function ModuleCard({ module, progress, isLocked, onClick }) {
-  const { title, description, difficulty, estimatedHours, lessons } = module;
+  const { title, description, estimatedHours, lessons } = module;
   
   const completedCount = progress?.completedLessons?.filter(lid => 
     lessons.some(l => l.id === lid)
@@ -14,12 +14,7 @@ export default function ModuleCard({ module, progress, isLocked, onClick }) {
   const percent = Math.round((completedCount / totalLessons) * 100);
   const isCompleted = percent === 100;
 
-  // Difficulty Colors
-  const difficultyColor = {
-    'Beginner': 'bg-[#0AD9DC]/20 text-[#0AD9DC] border-[#0AD9DC]/30',
-    'Intermediate': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    'Advanced': 'bg-rose-500/20 text-rose-400 border-rose-500/30',
-  }[difficulty] || 'bg-slate-500/20 text-slate-400';
+  // Difficulty removed
 
   return (
     <motion.div
@@ -44,9 +39,7 @@ export default function ModuleCard({ module, progress, isLocked, onClick }) {
             <PlayCircle className="w-6 h-6 text-[#0AD9DC]" />
           )}
         </div>
-        <div className={`px-3 py-1 rounded-full text-xs font-bold border ${difficultyColor}`}>
-          {difficulty.toUpperCase()}
-        </div>
+
       </div>
 
       {/* Content */}

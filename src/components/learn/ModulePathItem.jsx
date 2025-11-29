@@ -4,7 +4,7 @@ import { CheckCircle, Lock, Play, ChevronRight, Clock, BookOpen } from 'lucide-r
 import { cn } from '@/lib/utils';
 
 export default function ModulePathItem({ module, index, progress, isLocked, onClick }) {
-  const { title, description, difficulty, estimatedHours, lessons } = module;
+  const { title, description, estimatedHours, lessons } = module;
   
   const completedCount = progress?.completedLessons?.filter(lid => 
     lessons.some(l => l.id === lid)
@@ -86,14 +86,7 @@ export default function ModulePathItem({ module, index, progress, isLocked, onCl
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>{completedCount}/{totalLessons} Lessons</span>
                     </div>
-                    <div className={cn(
-                        "px-2 py-0.5 rounded border",
-                        difficulty === 'Beginner' ? "border-green-500/20 text-green-500" :
-                        difficulty === 'Intermediate' ? "border-amber-500/20 text-amber-500" :
-                        "border-rose-500/20 text-rose-500"
-                    )}>
-                        {difficulty}
-                    </div>
+
                 </div>
              </div>
 

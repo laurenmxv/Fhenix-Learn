@@ -4,7 +4,6 @@ export const CURRICULUM = [
     slug: 'why-privacy-matters',
     title: 'Why Privacy Matters and What FHE Is',
     description: 'Understand the foundation: what Fully Homomorphic Encryption (FHE) is, why it matters on Ethereum, and how CoFHE makes it usable.',
-    difficulty: 'Beginner',
     estimatedHours: 3,
     lessons: [
       {
@@ -137,6 +136,30 @@ None of these allow **persistent computation on encrypted values with full compo
         title: 'Module 1 Quiz',
         type: 'quiz',
         content: 'Quiz Content Placeholder'
+      },
+      {
+        id: 'm1-final',
+        title: 'Challenge: Encrypted Hello World',
+        type: 'sandbox',
+        content: `
+# Challenge: Encrypted Hello World
+
+In this challenge, you will verify that data is truly encrypted.
+
+**Goal:**
+1. Deploy a simple contract that stores an \`euint32\`.
+2. Try to read the storage slot directly (simulated).
+3. Use the FHE library to prove it is encrypted.
+
+\`\`\`solidity
+contract HiddenValue {
+    euint32 private val;
+    function set(inEuint32 memory v) public {
+        val = FHE.asEuint32(v);
+    }
+}
+\`\`\`
+        `
       }
     ]
   },
@@ -145,7 +168,6 @@ None of these allow **persistent computation on encrypted values with full compo
     slug: 'types-and-handles',
     title: 'Types, Handles, and Your First Encrypted Contract',
     description: 'Dive into FHE types (euintX), handles, and write your first encrypted smart contract.',
-    difficulty: 'Intermediate',
     estimatedHours: 4,
     lessons: [
       {
@@ -194,7 +216,7 @@ Because the EVM doesn't see the value, it executes "symbolically" regarding the 
       {
         id: 'm2-l3',
         title: 'Your First Encrypted Contract',
-        type: 'sandbox',
+        type: 'reading',
         content: `
 # Your First Encrypted Contract
 
@@ -247,6 +269,25 @@ Encryption happens **client-side** so the network never sees plaintext.
         title: 'Module 2 Quiz',
         type: 'quiz',
         content: 'Quiz Content Placeholder'
+      },
+      {
+        id: 'm2-final',
+        title: 'Challenge: Implement Decrement',
+        type: 'sandbox',
+        content: `
+# Challenge: Implement Decrement
+
+**Goal:**
+Modify the EncryptedCounter to support subtraction.
+
+\`\`\`solidity
+function sub(inEuint32 memory encryptedValue) public {
+    euint32 value = FHE.asEuint32(encryptedValue);
+    // Hint: use FHE.sub(counter, value)
+    counter = FHE.sub(counter, value);
+}
+\`\`\`
+        `
       }
     ]
   },
@@ -255,7 +296,6 @@ Encryption happens **client-side** so the network never sees plaintext.
     slug: 'cofhe-architecture',
     title: 'CoFHE Architecture and Data Flow',
     description: 'Deep dive into the architecture: On-chain components, Off-chain FHEOS, and the lifecycle of an encrypted transaction.',
-    difficulty: 'Intermediate',
     estimatedHours: 3,
     lessons: [
       {
@@ -295,6 +335,24 @@ Encryption happens **client-side** so the network never sees plaintext.
 4. **Seal/Unseal Flow**
    - Used for viewing data. User signs a permit -> Contract re-encrypts data with user's public key -> User decrypts locally.
         `
+      },
+      {
+        id: 'm3-final',
+        title: 'Challenge: Trace the Transaction',
+        type: 'sandbox',
+        content: `
+# Challenge: Trace the Transaction
+
+**Goal:**
+Visualize the flow of an FHE transaction.
+
+1. Client generates keypair.
+2. Client encrypts input x=10.
+3. Smart contract receives x, adds 5.
+4. Result y=15 stored as handle.
+
+(Interactive trace visualization would appear here)
+        `
       }
     ]
   },
@@ -303,7 +361,6 @@ Encryption happens **client-side** so the network never sees plaintext.
     slug: 'mental-models',
     title: 'Mental Models: Working With Encrypted Data',
     description: 'Master the mindset shift required for FHE: Oblivious execution, handling async decryption, and avoiding leaks.',
-    difficulty: 'Advanced',
     estimatedHours: 6,
     lessons: [
       {
@@ -373,6 +430,27 @@ The coprocessor waits for the threshold network to decrypt, then calls your call
 **Security:**
 Only the callback function receives the plaintext. This allows you to trigger logic based on hidden values (e.g., "Did the bid win?").
         `
+      },
+      {
+        id: 'm4-final',
+        title: 'Challenge: Implement Blind Auction',
+        type: 'sandbox',
+        content: `
+# Challenge: Implement Blind Auction
+
+**Goal:**
+Use \`FHE.select\` to update the highest bid without revealing if the new bid was higher.
+
+\`\`\`solidity
+function bid(inEuint32 memory encryptedBid) public {
+    euint32 bid = FHE.asEuint32(encryptedBid);
+    ebool isHighest = FHE.gt(bid, highestBid);
+    
+    // Update highest bid only if new bid is greater
+    highestBid = FHE.select(isHighest, bid, highestBid);
+}
+\`\`\`
+        `
       }
     ]
   },
@@ -381,7 +459,6 @@ Only the callback function receives the plaintext. This allows you to trigger lo
     slug: 'access-control',
     title: 'Access Control and Encrypted State',
     description: 'Managing permissions for encrypted data. Who can see what?',
-    difficulty: 'Advanced',
     estimatedHours: 4,
     lessons: [
       {
@@ -406,6 +483,25 @@ To view your encrypted balance:
 5. Returns the "Sealed" ciphertext.
 6. Frontend decrypts it.
         `
+      },
+      {
+        id: 'm5-final',
+        title: 'Challenge: Permissioned Viewer',
+        type: 'sandbox',
+        content: `
+# Challenge: Permissioned Viewer
+
+**Goal:**
+Create a function that only allows the owner to view the balance.
+
+\`\`\`solidity
+function viewBalance(Permission memory permission) public view returns (string memory) {
+   // Validate permission...
+   // If valid:
+   return FHE.seal(balance, permission.publicKey);
+}
+\`\`\`
+        `
       }
     ]
   },
@@ -414,7 +510,6 @@ To view your encrypted balance:
     slug: 'putting-it-together',
     title: 'Putting It All Together',
     description: 'Capstone module. Final checklists and building a complete DApp.',
-    difficulty: 'Advanced',
     estimatedHours: 2,
     lessons: [
       {
@@ -430,6 +525,22 @@ To view your encrypted balance:
 - [ ] **No Leaking Events:** Did not emit decrypted values unless strictly intended.
 - [ ] **Access Control:** View functions use Permits to verify identity before returning Sealed data.
 - [ ] **Type Safety:** Input types (\`inEuint\`) are never stored in state.
+        `
+      },
+      {
+        id: 'm6-final',
+        title: 'Capstone Challenge: The Hidden Voting Booth',
+        type: 'sandbox',
+        content: `
+# Capstone Challenge: The Hidden Voting Booth
+
+**Goal:**
+Build a voting contract where:
+1. Votes are encrypted (0 or 1).
+2. Tally is encrypted.
+3. Result is decrypted only after voting ends.
+
+Ready to build?
         `
       }
     ]

@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { CURRICULUM } from '@/components/learn/curriculum';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, CheckCircle, Play, HelpCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Play, HelpCircle, Lock } from 'lucide-react';
 import EncryptedOperationVisualizer from '@/components/learn/interactive/EncryptedOperationVisualizer';
 import CodeCompare from '@/components/learn/interactive/CodeCompare';
 
@@ -197,23 +197,30 @@ export default function Lesson() {
               const isActive = l.id === currentLesson.id;
               const isDone = progress?.completed_lessons?.includes(l.id);
               
+              // Check unlock status: Previous lesson must be done, or this is the first lesson
+              // Actually, simpler: allow if index == 0 OR previous lesson is in completed_lessons
+              const previousLessonId = idx > 0 ? currentModule.lessons[idx - 1].id : null;
+              const isUnlocked = idx === 0 || (previousLessonId && progress?.completed_lessons?.includes(previousLessonId));
+
               return (
-                <Link 
-                  key={l.id}
-                  to={`${createPageUrl('Lesson')}?module=${moduleSlug}&lesson=${l.id}`}
-                  className={`flex items-center gap-3 p-3 rounded-lg text-sm transition-colors ${
-                    isActive 
-                      ? 'bg-[#0AD9DC]/10 text-[#0AD9DC] border border-[#0AD9DC]/20' 
-                      : 'text-slate-400 hover:bg-white/5'
-                  }`}
-                >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold
-                    ${isDone ? 'bg-green-500/20 text-green-500' : isActive ? 'bg-[#0AD9DC]/20' : 'bg-white/5'}
-                  `}>
-                    {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : idx + 1}
-                  </div>
-                  <span className="line-clamp-2">{l.title}</span>
-                </Link>
+                <div key={l.id} className={!isUnlocked ? 'opacity-50 pointer-events-none' : ''}>
+                  <Link 
+                    to={`${createPageUrl('Lesson')}?module=${moduleSlug}&lesson=${l.id}`}
+                    className={`flex items-center gap-3 p-3 rounded-lg text-sm transition-colors ${
+                      isActive 
+                        ? 'bg-[#0AD9DC]/10 text-[#0AD9DC] border border-[#0AD9DC]/20' 
+                        : 'text-slate-400 hover:bg-white/5'
+                    }`}
+                    onClick={(e) => !isUnlocked && e.preventDefault()}
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold
+                      ${isDone ? 'bg-green-500/20 text-green-500' : isActive ? 'bg-[#0AD9DC]/20' : !isUnlocked ? 'bg-white/5 text-slate-600' : 'bg-white/5'}
+                    `}>
+                      {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : !isUnlocked ? <Lock className="w-3 h-3" /> : idx + 1}
+                    </div>
+                    <span className="line-clamp-2">{l.title}</span>
+                  </Link>
+                </div>
               );
             })}
           </div>
@@ -223,11 +230,8 @@ export default function Lesson() {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-8 md:p-12">
-            <div className="flex items-center gap-2 text-[#0AD9DC] text-sm font-bold uppercase tracking-wider mb-4">
-                {currentModule.difficulty} MODULE
-            </div>
-          
-          {/* Render Type */}
+
+        {/* Render Type */}
           {currentLesson.type === 'reading' && (
              <div className="max-w-none">
                <ReactMarkdown components={MarkdownComponents}>
@@ -329,14 +333,21 @@ export default function Lesson() {
                       </Button>
                   )}
                   
-                  <Button 
-                    onClick={handleNext}
-                    disabled={!isCompleted} 
-                    className="bg-[#0AD9DC] hover:bg-[#0AD9DC]/90 text-[#011623] font-bold"
-                  >
-                      {currentLessonIndex === currentModule.lessons.length - 1 ? 'Next Module' : 'Next Lesson'} 
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
+                  <div className="relative group">
+                    <Button 
+                      onClick={handleNext}
+                      disabled={!isCompleted} 
+                      className={`bg-[#0AD9DC] hover:bg-[#0AD9DC]/90 text-[#011623] font-bold disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                        {currentLessonIndex === currentModule.lessons.length - 1 ? 'Next Module' : 'Next Lesson'} 
+                        {isCompleted ? <ChevronRight className="w-4 h-4 ml-2" /> : <Lock className="w-3.5 h-3.5 ml-2 opacity-70" />}
+                    </Button>
+                    {!isCompleted && (
+                      <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-[#011623] border border-white/10 rounded-lg text-xs text-slate-300 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        Complete this lesson to unlock next
+                      </div>
+                    )}
+                  </div>
               </div>
           </div>
         </div>
