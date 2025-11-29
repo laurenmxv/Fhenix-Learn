@@ -158,16 +158,12 @@ export default function Learn() {
         <div className="mb-20">
           <h2 className="text-2xl font-bold text-white mt-8 mb-10">Learning Path</h2>
 
-          <div className="max-w-4xl mx-auto relative space-y-8">
-            {/* Connecting Line */}
-            <div className="absolute left-[35px] top-4 bottom-4 w-0.5 bg-white/5 -z-10" />
-
+          <div className="max-w-5xl mx-auto space-y-0">
             {CURRICULUM.map((module, index) => {
               // Module Locking Logic
-              // Module 0 is always unlocked.
-              // Module N is unlocked if Module N-1 is in completed_modules
               const prevModule = CURRICULUM[index - 1];
               const isLocked = index > 0 && !progress?.completed_modules?.includes(prevModule.id);
+              const isLast = index === CURRICULUM.length - 1;
 
               return (
                 <ModulePathItem
@@ -179,6 +175,7 @@ export default function Learn() {
                       completedModules: progress?.completed_modules || []
                   }}
                   isLocked={isLocked}
+                  isLast={isLast}
                   onClick={() => handleModuleClick(module)}
                 />
               );
