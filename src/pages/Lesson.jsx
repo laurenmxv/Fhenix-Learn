@@ -241,16 +241,16 @@ export default function Lesson() {
           )}
 
           {currentLesson.type === 'sandbox' && (
-              <div className="space-y-6">
-                  <h1 className="text-3xl font-bold text-white">{currentLesson.title}</h1>
-                  <div className="grid md:grid-cols-2 gap-6 h-[500px]">
+              <div className="flex flex-col h-[calc(100vh-140px)] min-h-[600px]">
+                  <h1 className="text-3xl font-bold text-white mb-6">{currentLesson.title}</h1>
+                  <div className="grid lg:grid-cols-2 gap-6 flex-1 min-h-0">
                       {/* Instructions */}
-                      <div className="bg-[#022031] border border-white/10 rounded-xl p-6 overflow-y-auto">
+                      <div className="bg-[#022031] border border-white/10 rounded-xl p-6 overflow-y-auto shadow-inner custom-scrollbar">
                           <ReactMarkdown components={MarkdownComponents}>{currentLesson.content}</ReactMarkdown>
                       </div>
                       
                       {/* Mock Editor */}
-                      <div className="bg-black rounded-xl border border-white/10 flex flex-col overflow-hidden">
+                      <div className="bg-black rounded-xl border border-white/10 flex flex-col overflow-hidden shadow-2xl">
                           <div className="bg-slate-900 px-4 py-2 border-b border-white/10 flex items-center justify-between">
                               <span className="text-xs text-slate-400 font-mono">Contract.sol</span>
                               <Button size="sm" className="h-7 bg-green-600 hover:bg-green-700 text-white text-xs">
