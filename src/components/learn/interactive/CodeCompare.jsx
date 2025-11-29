@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Switch } from '@/components/ui/switch';
 
 export default function CodeCompare() {
@@ -48,20 +46,11 @@ contract EncryptedCounter {
       </div>
       
       <div className="relative group">
-          <SyntaxHighlighter
-            language="solidity"
-            style={atomDark}
-            customStyle={{
-                margin: 0,
-                padding: '1.5rem',
-                background: '#011623',
-                fontSize: '0.9rem',
-                lineHeight: '1.5'
-            }}
-            wrapLines={true}
-          >
-            {isEncrypted ? fheCode : plainCode}
-          </SyntaxHighlighter>
+          <pre className="m-0 p-6 bg-[#011623] text-sm leading-relaxed overflow-x-auto font-mono text-slate-300">
+            <code>
+                {isEncrypted ? fheCode : plainCode}
+            </code>
+          </pre>
           
           {/* Highlight changed lines indicator */}
           {isEncrypted && (
