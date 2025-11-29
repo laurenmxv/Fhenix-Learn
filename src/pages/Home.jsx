@@ -34,50 +34,48 @@ export default function Home() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-2 py-1 bg-[#0AD9DC]/10 text-[#0AD9DC] text-xs font-bold tracking-wide mb-8 uppercase font-mono"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0AD9DC]/10 border border-[#0AD9DC]/20 text-[#0AD9DC] text-sm font-bold tracking-wide mb-8"
           >
-            <span className="text-[#0AD9DC] text-opacity-50">.</span> 
-            <span className="px-1 bg-[#0AD9DC] text-[#011623]">BUILD WITH FHENIX</span>
-            <span className="text-[#0AD9DC] text-opacity-50">.</span>
+            <span className="w-2 h-2 rounded-full bg-[#0AD9DC] animate-pulse" />
+            LEARN FHE ON ETHEREUM
           </motion.div>
 
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-8 font-display"
+            className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight mb-6"
           >
-            Confidential Computing For <br className="hidden md:block" />
-            The Next Wave Of DeFi
+            Master <span className="text-[#0AD9DC] font-mono">Confidential Computing</span> <br className="hidden md:block" /> 
+            with coFHE
           </motion.h1>
 
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed font-sans"
+            className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed"
           >
-            Join developers and protocols building the next generation of onchain applications — powered by encrypted execution.
+            Learn to build privacy-preserving smart contracts using Fully Homomorphic Encryption. Interactive lessons, hands-on code playgrounds, and real-world examples.
           </motion.p>
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-6"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link to={createPageUrl('Learn')}>
-              <Button size="lg" className="bg-[#011623] hover:bg-[#022031] text-white border border-white/20 font-bold rounded-none px-8 h-14 text-base w-full sm:w-auto transition-all group">
+              <Button size="lg" className="bg-[#0AD9DC] hover:bg-[#0AD9DC]/90 text-[#011623] font-bold rounded-full px-8 h-14 text-lg w-full sm:w-auto">
                 Start Learning
-                <span className="ml-2 text-[#0AD9DC] group-hover:translate-x-1 transition-transform">❖</span>
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <a href="https://twitter.com/FhenixIO" target="_blank" rel="noopener noreferrer">
-              <Button variant="ghost" size="lg" className="text-white hover:text-[#0AD9DC] rounded-none px-8 h-14 text-base w-full sm:w-auto group font-bold">
-                Follow Fhenix
-                <span className="ml-2 text-[#0AD9DC] opacity-0 group-hover:opacity-100 transition-opacity">➤</span>
+            <Link to={createPageUrl('Learn')}>
+              <Button variant="outline" size="lg" className="border-white/10 text-white hover:bg-white/5 rounded-full px-8 h-14 text-lg w-full sm:w-auto">
+                View Curriculum
               </Button>
-            </a>
+            </Link>
           </motion.div>
         </div>
       </section>
