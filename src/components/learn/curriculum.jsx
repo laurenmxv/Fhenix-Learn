@@ -1,3 +1,4 @@
+
 export const CURRICULUM = [
   {
     id: 'module-1',
@@ -376,12 +377,7 @@ contract HiddenValue {
 
   These are encrypted analogs of Solidity’s \`uintX\` types.
 
-  **Available sizes:**
-  * \`euint8\`
-  * \`euint16\`
-  * \`euint32\`
-  * \`euint64\`
-  * \`euint128\`
+  **Available sizes:** \`euint8\`, \`euint16\`, \`euint32\`, \`euint64\`, and \`euint128\`.
 
   ### What they represent
   An \`euintX\` is:
