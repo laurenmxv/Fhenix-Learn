@@ -1,36 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import AppShell from '@/components/layout/AppShell';
-import { base44 } from '@/api/base44Client';
-import { useLocation } from 'react-router-dom';
+import { UserProgressProvider, useUserProgress } from '@/contexts/UserProgressContext';
 
-export default function Layout({ children }) {
-  const [user, setUser] = useState(null);
-  const [userProgress, setUserProgress] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const location = useLocation();
-
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        
-        if (currentUser) {
-            const progress = await base44.entities.UserProgress.list({ user_id: currentUser.id });
-            if (progress.length > 0) {
-                setUserProgress(progress[0]);
-            }
-        }
-      } catch (e) {
-        // Not logged in
-        setUser(null);
-        setUserProgress(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkUser();
-  }, [location.pathname]); // Re-check on navigation
+function LayoutContent({ children }) {
+  const { user, progress, loading } = useUserProgress();
 
   if (loading) {
     return (
@@ -41,8 +14,16 @@ export default function Layout({ children }) {
   }
 
   return (
-    <AppShell user={user} userProgress={userProgress}>
+    <AppShell user={user} userProgress={progress}>
       {children}
     </AppShell>
+  );
+}
+
+export default function Layout({ children }) {
+  return (
+    <UserProgressProvider>
+      <LayoutContent>{children}</LayoutContent>
+    </UserProgressProvider>
   );
 }

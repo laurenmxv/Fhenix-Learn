@@ -1,36 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import React from 'react';
 import { CURRICULUM } from '@/components/learn/curriculum';
 import { BADGES } from '@/components/learn/badges';
 import { motion } from 'framer-motion';
 import { Trophy, Terminal, Award, Lock, BookOpen, CheckCircle, Clock } from 'lucide-react';
+import { useUserProgress } from '@/contexts/UserProgressContext';
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
-  const [progress, setProgress] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, progress, loading } = useUserProgress();
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        if (currentUser) {
-          const res = await base44.entities.UserProgress.list({
-            user_id: currentUser.id
-          });
-          if (res.length > 0) setProgress(res[0]);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, []);
-
-  if (loading) return <div className="min-h-screen bg-[#011623] flex items-center justify-center text-[#0AD9DC]">Loading...</div>;
+  if (loading) return null; // Layout handles loading
   if (!user) return <div className="min-h-screen bg-[#011623] flex items-center justify-center text-white">Please log in to view your profile.</div>;
 
   const xp = progress?.xp || 0;

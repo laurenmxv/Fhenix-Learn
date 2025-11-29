@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
 import { CURRICULUM } from '@/components/learn/curriculum';
 import ModuleCard from '@/components/modules/ModuleCard';
 import ModulePathItem from '@/components/learn/ModulePathItem';
@@ -9,90 +8,11 @@ import BadgeStrip from '@/components/learn/BadgeStrip';
 import PlaygroundCard from '@/components/learn/PlaygroundCard';
 import { Button } from '@/components/ui/button';
 import { Trophy, Zap, Terminal, PlayCircle } from 'lucide-react';
+import { useUserProgress } from '@/contexts/UserProgressContext';
 
 export default function Learn() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [user, setUser] = useState(null);
-  const [progress, setProgress] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-        if (currentUser) {
-          // Prioritize passed state to avoid stale DB reads
-          if (location.state?.progress && location.state.progress.user_id === currentUser.id) {
-              setProgress(location.state.progress);
-              setLoading(false);
-              return;
-          }
-
-          // Fetch progress from DB
-          const res = await base44.entities.UserProgress.list({
-            user_id: currentUser.id
-          });
-          
-          if (res.length > 0) {
-            // Progress exists
-            let currentP = res[0];
-            
-            // SELF-HEALING: Check for missed module completions
-            // Sometimes a user might finish lessons but the module completion event wasn't captured
-            let updatesNeeded = false;
-            const missingModules = [];
-            const currentCompletedModules = currentP.completed_modules || [];
-            const currentCompletedLessons = currentP.completed_lessons || [];
-
-            CURRICULUM.forEach(mod => {
-                const allLessonsDone = mod.lessons.every(l => currentCompletedLessons.includes(l.id));
-                if (allLessonsDone && !currentCompletedModules.includes(mod.id)) {
-                    missingModules.push(mod.id);
-                    updatesNeeded = true;
-                }
-            });
-
-            if (updatesNeeded) {
-                const newCompletedModules = [...currentCompletedModules, ...missingModules];
-                // Calculate new XP if needed (optional, but good for consistency)
-                // For now, just syncing the unlock status is the priority
-                const updated = await base44.entities.UserProgress.update(currentP.id, {
-                    completed_modules: newCompletedModules
-                });
-                currentP = updated;
-            }
-
-            setProgress(currentP);
-            
-            // Background sync display_name if needed
-            if (!currentP.display_name && currentUser.email) {
-                base44.entities.UserProgress.update(currentP.id, {
-                    display_name: currentUser.email.split('@')[0]
-                });
-            }
-          } else {
-            // Initialize progress if none exists
-            const newProgress = await base44.entities.UserProgress.create({
-              user_id: currentUser.id,
-              display_name: currentUser.email?.split('@')[0] || 'Anonymous',
-              xp: 0,
-              completed_lessons: [],
-              completed_modules: [],
-              badges: []
-            });
-            setProgress(newProgress);
-          }
-        }
-      } catch (e) {
-        console.error("Auth/Progress error", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, [location.state]);
+  const { user, progress, loading } = useUserProgress();
 
   const handleModuleClick = (module) => {
     // Find the first incomplete lesson or the first lesson
@@ -101,7 +21,7 @@ export default function Learn() {
     navigate(`${createPageUrl('Lesson')}?module=${module.slug}&lesson=${firstLesson.id}`);
   };
 
-  if (loading) return <div className="min-h-screen bg-[#011623] flex items-center justify-center text-[#0AD9DC]">Loading...</div>;
+  if (loading) return null; // Layout handles loading
 
   // Calculate Stats
   const xp = progress?.xp || 0;

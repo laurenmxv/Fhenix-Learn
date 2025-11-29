@@ -241,6 +241,7 @@ export default function Lesson() {
     }
   };
 
+  if (contextLoading) return null;
   if (!currentModule || !currentLesson) return <div className="p-20 text-white text-center">Lesson not found</div>;
 
   return (
