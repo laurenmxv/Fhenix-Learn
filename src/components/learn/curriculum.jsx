@@ -358,128 +358,283 @@ contract HiddenValue {
   },
   {
     id: 'module-2',
-    slug: 'types-and-handles',
-    title: 'Types, Handles, and Your First Encrypted Contract',
-    description: 'Dive into FHE types (euintX), handles, and write your first encrypted smart contract.',
+    slug: 'encrypted-types-operations',
+    title: 'Module 2: Encrypted Types & Basic Operations',
+    description: 'Master encrypted integers, booleans, safe inputs, and your first encrypted computation without leaks.',
     estimatedHours: 4,
     lessons: [
       {
         id: 'm2-l1',
-        title: 'FHE Types: euintX and ebool',
+        title: '2.1 Encrypted Compute Types',
         type: 'reading',
         content: `
-# FHE Types
+  # 2.1 Encrypted Compute Types
 
-FHE introduces new encrypted data types to Solidity via the FHE library.
+  CoFHE provides special Solidity types that represent encrypted values. These types **never hold plaintext**; they are always ciphertexts.
 
-- **euint8, euint16, euint32, euint64, euint128, euint256**: Encrypted unsigned integers.
-- **ebool**: Encrypted boolean.
+  ## euintX — Encrypted Unsigned Integers
 
-**Constraints:**
-- You cannot directly read the value of an \`euint\`.
-- You cannot use standard operators (\`+\`, \`-\`, \`*\`) directly. You must use \`FHE.add(a, b)\`, etc.
+  These are encrypted analogs of Solidity’s \`uintX\` types.
 
-### Two Type Systems: Compute vs Input
-1. **euintX (Compute):** These are "handles" to encrypted data stored on-chain. Used in contract logic.
-2. **inEuintX (Input):** These are payloads coming from a user transaction. They contain the ciphertext + ZK proof of validity.
-   - **Mandatory Conversion:** You MUST convert \`inEuintX\` to \`euintX\` using \`FHE.asEuintX(input)\` before using it.
-   - **Never Store InEuint:** Never store the input type directly in state.
+  **Available sizes:**
+  * \`euint8\`
+  * \`euint16\`
+  * \`euint32\`
+  * \`euint64\`
+  * \`euint128\`
 
-### Special Note on ebool
-An \`ebool\` is essentially an \`euint8\` restricted to 0 or 1. It is critical for control flow replacement (using \`FHE.select\`).
+  ### What they represent
+  An \`euintX\` is:
+  * a fully encrypted integer
+  * stored on-chain as a ciphertext
+  * only operable using FHE-safe operations
+  * **never decryptable** inside the contract
+
+  ### What operations they support
+  \`euintX\` supports a rich set of operations defined in \`FHE.sol\`:
+  * addition
+  * subtraction
+  * multiplication
+  * division
+  * remainder
+  * bitwise ops
+  * shifts
+  * comparisons
+
+  All of these operate entirely on encrypted data.
+
+  ## ebool — Encrypted Boolean
+
+  An \`ebool\` represents an encrypted boolean value.
+
+  * **Produced by:** comparing two encrypted integers
+  * **Stored:** encrypted
+  * **Usage:** cannot be used as a native \`bool\`, cannot be passed into \`if\`/\`require\`
+
+  \`ebool\` is the result of comparison functions like \`a.eq(b)\`, \`a.gt(b)\`, etc. These return a ciphertext representing true/false — **not a plaintext boolean**.
         `
       },
       {
         id: 'm2-l2',
-        title: 'Ciphertext Handles and Symbolic Execution',
+        title: '2.2 Input Types',
         type: 'reading',
         content: `
-# Ciphertext Handles
+  # 2.2 Input Types
 
-When you see an \`euint256\` in Solidity on Fhenix, you are actually holding a **Handle** (a \`uint256\` ID).
+  When users send encrypted data to a contract, the data arrives wrapped in **input types**.
 
-- The actual encrypted data (ciphertext) is huge and stored in the Data Availability (DA) layer or Ciphertext Registry.
-- The EVM only passes around this pointer (Handle).
-- When you call \`FHE.add(a, b)\`, the coprocessor looks up the ciphertexts for handles \`a\` and \`b\`, computes the addition, stores the new ciphertext, and returns a new handle.
+  These wrappers ensure:
+  1. Safety
+  2. Correct shape
+  3. Validation
+  4. Compatibility with \`FHE.sol\`
 
-**Symbolic Execution:**
-Because the EVM doesn't see the value, it executes "symbolically" regarding the data. It knows "Handle C = Handle A + Handle B" but doesn't know the numbers.
+  The input types directly match the encrypted compute types:
+  * \`InEuint8\`
+  * \`InEuint16\`
+  * \`InEuint32\`
+  * \`InEuint64\`
+  * \`InEuint128\`
+
+  ## Why encrypted inputs are encapsulated
+
+  An encrypted input cannot be assumed valid until it is converted. The wrapper holds the ciphertext from the user, ensures it’s well-formed, and prevents unsafe direct usage.
+
+  ## Converting input → compute
+
+  To use an encrypted input inside the contract, you must convert it using the correct \`FHE.asEuintX()\` function.
+
+  \`\`\`solidity
+  function submit(InEuint16 memory input) public {
+    // Transform validated input wrapper into compute type
+    euint16 value = FHE.asEuint16(input);
+  }
+  \`\`\`
+
+  **Important:** This does not decrypt. It simply transforms a validated input wrapper into the compute type used for FHE operations.
         `
       },
       {
         id: 'm2-l3',
-        title: 'Your First Encrypted Contract',
+        title: '2.3 Trivial Encryption',
         type: 'reading',
         content: `
-# Your First Encrypted Contract
+  # 2.3 Trivial Encryption
 
-Here is a minimal example of a counter that can be incremented privately.
+  Smart contracts often need to combine encrypted values with known constants. Since plaintext cannot interact directly with ciphertext, CoFHE provides **trivial encryption** for literals.
 
-\`\`\`solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+  ## How trivial encryption works
 
-import "@fhenixprotocol/contracts/FHE.sol";
+  Use \`FHE.asEuintX(<literal>)\` to convert a plaintext literal into a ciphertext compatible with FHE operations.
 
-contract EncryptedCounter {
-    euint32 private counter;
+  **Examples:**
+  \`\`\`solidity
+  // Encrypt the number 2
+  euint8 two = FHE.asEuint8(2);
 
-    constructor() {
-        // Initialize with encrypted zero
-        counter = FHE.asEuint32(0);
-    }
+  // Encrypt the number 1000
+  euint64 base = FHE.asEuint64(1000);
+  \`\`\`
 
-    function add(inEuint32 memory encryptedValue) public {
-        // 1. Convert input to handle
-        euint32 value = FHE.asEuint32(encryptedValue);
-        
-        // 2. Perform encrypted addition
-        counter = FHE.add(counter, value);
-    }
-    
-    // Note: We cannot simply "return" the counter because it is encrypted!
-    // We would need a re-encryption/view function to see it.
-}
-\`\`\`
+  This produces a ciphertext representing the literal, allowing encrypted math to proceed safely.
 
-### Compare: Traditional vs Encrypted
-See the difference in syntax side-by-side:
+  ## Privacy propagation rules
 
-\`\`\`compare
-// This block renders the CodeCompare component
-\`\`\`
+  * Trivial encryption **does not expose** the literal (in the context of the operation being encrypted).
+  * Combining \`ciphertext + trivial ciphertext\` = \`output ciphertext\`.
+  * **No plaintext is leaked** in the process.
+  * The resulting value always remains encrypted.
 
-### Frontend Encryption with cofhejs
-Encryption happens **client-side** so the network never sees plaintext.
-\`cofhejs\` is the library used to:
-1. Create an FHE instance.
-2. Encrypt parameters (\`instance.encrypt8(5)\`).
-3. Send the resulting ciphertext struct to the contract.
+  This is foundational to constructing encrypted arithmetic.
         `
       },
       {
-        id: 'm2-quiz',
-        title: 'Module 2 Quiz',
-        type: 'quiz',
-        content: 'Quiz Content Placeholder'
+        id: 'm2-l4',
+        title: '2.4 Encrypted Arithmetic',
+        type: 'reading',
+        content: `
+  # 2.4 Encrypted Arithmetic
+
+  ## Supported arithmetic operations
+
+  All \`euintX\` types support standard arithmetic operators which are overloaded to work on encrypted data:
+
+  * \`a + b\`
+  * \`a - b\`
+  * \`a * b\`
+  * \`a / b\`
+  * \`a % b\`
+
+  These are operator overloads around FHE-safe functions:
+  * \`FHE.add(a, b)\`
+  * \`FHE.sub(a, b)\`
+  * \`FHE.mul(a, b)\`
+  * \`FHE.div(a, b)\`
+  * \`FHE.mod(a, b)\`
+
+  ## Key property: all arithmetic outputs remain encrypted
+
+  \`\`\`solidity
+  euint32 a = FHE.asEuint32(10);
+  euint32 b = FHE.asEuint32(3);
+
+  euint32 result = a * b;  // encrypted result of 30
+  \`\`\`
+
+  The \`result\`:
+  * is still encrypted
+  * cannot be inspected
+  * cannot be logged
+  * must be returned to the user for decryption (if needed)
+
+  ## Operator overloading vs explicit calls
+
+  Both are equivalent in behavior. Use operator overloads for readability.
+
+  **Overloaded:**
+  \`\`\`solidity
+  euint64 c = x + y;
+  \`\`\`
+
+  **Explicit:**
+  \`\`\`solidity
+  euint64 c = FHE.add(x, y);
+  \`\`\`
+
+  Both are fully supported.
+        `
+      },
+      {
+        id: 'm2-l5',
+        title: '2.5 Encrypted Comparisons',
+        type: 'reading',
+        content: `
+  # 2.5 Encrypted Comparisons
+
+  Comparisons between encrypted integers produce **encrypted booleans**, not plaintext ones.
+
+  ## Available comparison functions
+
+  * \`a.eq(b)\` (Equal)
+  * \`a.gt(b)\` (Greater Than)
+  * \`a.gte(b)\` (Greater Than or Equal)
+  * \`a.lt(b)\` (Less Than)
+  * \`a.lte(b)\` (Less Than or Equal)
+
+  These return an \`ebool\` ciphertext.
+
+  ## Why you cannot branch on encrypted booleans
+
+  A normal Solidity \`if\` statement reveals:
+  * which path was taken
+  * gas differences
+  * storage diffs
+  * event patterns
+
+  This would leak the underlying secret.
+
+  **Therefore:**
+
+  ❌ **NEVER WRITE:**
+  \`\`\`solidity
+  if (a.gt(b)) { ... }   // LEAKS DATA
+  \`\`\`
+
+  ✅ **ALWAYS:**
+  Treat comparisons as encrypted values that feed into FHE primitives like \`FHE.select()\` (covered in Module 5).
+
+  This is directly mandated by the CoFHE/FHE.sol specification.
+        `
       },
       {
         id: 'm2-final',
-        title: 'Challenge: Implement Decrement',
+        title: '2.6 Challenge — First Encrypted Operation',
         type: 'sandbox',
         content: `
-# Challenge: Implement Decrement
+  # 2.6 Challenge — First Encrypted Operation
 
-**Goal:**
-Modify the EncryptedCounter to support subtraction.
+  In this exercise, you will implement your first complete encrypted flow:
+  1. Receive encrypted input
+  2. Convert wrapper into \`euintX\`
+  3. Apply encrypted math
+  4. Store encrypted result
 
-\`\`\`solidity
-function sub(inEuint32 memory encryptedValue) public {
-    euint32 value = FHE.asEuint32(encryptedValue);
-    // Hint: use FHE.sub(counter, value)
-    counter = FHE.sub(counter, value);
-}
-\`\`\`
+  ## Starter Contract
+
+  \`\`\`solidity
+  // SPDX-License-Identifier: MIT
+  pragma solidity ^0.8.18;
+
+  import {FHE, InEuint8, euint8} from "@fhenixprotocol/contracts/FHE.sol";
+
+  contract FirstEncryptedOperation {
+    euint8 public stored;
+
+    function submit(InEuint8 memory input) public {
+        // 1. Convert input wrapper -> encrypted compute type
+        euint8 x = FHE.asEuint8(input);
+
+        // 2. Trivially encrypt a literal
+        euint8 two = FHE.asEuint8(2);
+
+        // 3. Perform encrypted arithmetic
+        euint8 result = x * two;  // encrypted double
+
+        // 4. Store encrypted result
+        stored = result;
+    }
+  }
+  \`\`\`
+
+  ## Learning outcomes
+  This challenge reinforces:
+  * correct usage of \`InEuintX\`
+  * the mandatory conversion step
+  * trivial encryption
+  * encrypted arithmetic
+  * encrypted state storage
+
+  It bridges the conceptual shift from "encrypted math is a thing" to "I can now do it inside a smart contract safely."
         `
       }
     ]
