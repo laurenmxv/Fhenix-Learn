@@ -258,7 +258,10 @@ export default function Lesson() {
 
                   <Button 
                     className="w-full mt-8 bg-[#0AD9DC] hover:bg-[#0AD9DC]/90 text-[#011623] font-bold"
-                    onClick={() => setIsCompleted(true)}
+                    onClick={() => {
+                        setIsCompleted(true);
+                        handleComplete();
+                    }}
                     disabled={quizAnswer === null}
                   >
                       Submit Answer
