@@ -1,18 +1,49 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs/promises';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+dotenv.config({ path: join(__dirname, '.env') });
 
 const dbPath = join(__dirname, 'progress.db');
 const jsonDbPath = join(__dirname, 'progress.json');
+const contractConfigPath = join(__dirname, 'contract-config.json');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Contract address storage
+let contractConfig = {
+    FhenixLearnBadge: null,
+    network: 'arb-sepolia',
+    chainId: 421614,
+    lastUpdated: null
+};
+
+async function loadContractConfig() {
+    try {
+        const data = await fs.readFile(contractConfigPath, 'utf8');
+        contractConfig = JSON.parse(data);
+    } catch {
+        // File doesn't exist, use defaults
+    }
+
+    const envBadgeAddress = process.env.FHENIX_LEARN_BADGE_ADDRESS || process.env.VITE_FHENIX_LEARN_BADGE_ADDRESS;
+    if (envBadgeAddress) {
+        contractConfig.FhenixLearnBadge = envBadgeAddress;
+    }
+}
+
+async function saveContractConfig() {
+    await fs.writeFile(contractConfigPath, JSON.stringify(contractConfig, null, 2));
+}
+
+loadContractConfig();
 
 function defaultProgress(userId) {
     return {
@@ -21,7 +52,10 @@ function defaultProgress(userId) {
         xp: 0,
         completed_modules: [],
         completed_lessons: [],
-        badges: []
+        badges: [],
+        wallet_address: null,
+        contract_address: null,
+        last_tx_hash: null
     };
 }
 
@@ -32,7 +66,10 @@ function normalizeProgressRecord(input) {
         xp: Number.isFinite(input.xp) ? input.xp : 0,
         completed_modules: Array.isArray(input.completed_modules) ? input.completed_modules : [],
         completed_lessons: Array.isArray(input.completed_lessons) ? input.completed_lessons : [],
-        badges: Array.isArray(input.badges) ? input.badges : []
+        badges: Array.isArray(input.badges) ? input.badges : [],
+        wallet_address: input.wallet_address ?? input.walletAddress ?? null,
+        contract_address: input.contract_address ?? input.contractAddress ?? null,
+        last_tx_hash: input.last_tx_hash ?? input.lastTxHash ?? null
     };
 }
 
@@ -75,6 +112,9 @@ async function createJsonAdapter() {
             await persist();
             return normalized;
         },
+        async getAll() {
+            return Object.values(store).map(normalizeProgressRecord);
+        },
         async leaderboard(limit) {
             return Object.values(store)
                 .map(normalizeProgressRecord)
@@ -115,12 +155,19 @@ function createSqliteAdapter(db) {
             xp: row.xp,
             completed_modules: JSON.parse(row.completed_modules || '[]'),
             completed_lessons: JSON.parse(row.completed_lessons || '[]'),
-            badges: JSON.parse(row.badges || '[]')
+            badges: JSON.parse(row.badges || '[]'),
+            wallet_address: row.wallet_address,
+            contract_address: row.contract_address,
+            last_tx_hash: row.last_tx_hash
         });
     };
 
     return {
         type: 'sqlite',
+        async getAll() {
+            const rows = await all('SELECT * FROM user_progress');
+            return rows.map(fromRow);
+        },
         async getByUserId(userId) {
             const row = await get('SELECT * FROM user_progress WHERE user_id = ?', [userId]);
             return fromRow(row);
@@ -138,14 +185,17 @@ function createSqliteAdapter(db) {
         async upsert(progressRecord) {
             const normalized = normalizeProgressRecord(progressRecord);
             const query = `
-                INSERT INTO user_progress (user_id, display_name, xp, completed_modules, completed_lessons, badges)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO user_progress (user_id, display_name, xp, completed_modules, completed_lessons, badges, wallet_address, contract_address, last_tx_hash)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(user_id) DO UPDATE SET
                     display_name = COALESCE(excluded.display_name, user_progress.display_name),
                     xp = excluded.xp,
                     completed_modules = excluded.completed_modules,
                     completed_lessons = excluded.completed_lessons,
-                    badges = excluded.badges
+                    badges = excluded.badges,
+                    wallet_address = COALESCE(excluded.wallet_address, user_progress.wallet_address),
+                    contract_address = COALESCE(excluded.contract_address, user_progress.contract_address),
+                    last_tx_hash = COALESCE(excluded.last_tx_hash, user_progress.last_tx_hash)
             `;
             await run(query, [
                 normalized.user_id,
@@ -153,7 +203,10 @@ function createSqliteAdapter(db) {
                 normalized.xp,
                 JSON.stringify(normalized.completed_modules),
                 JSON.stringify(normalized.completed_lessons),
-                JSON.stringify(normalized.badges)
+                JSON.stringify(normalized.badges),
+                normalized.wallet_address,
+                normalized.contract_address,
+                normalized.last_tx_hash
             ]);
             return normalized;
         },
@@ -190,10 +243,27 @@ async function createStorageAdapter() {
                     xp INTEGER DEFAULT 0,
                     completed_modules TEXT DEFAULT '[]',
                     completed_lessons TEXT DEFAULT '[]',
-                    badges TEXT DEFAULT '[]'
+                    badges TEXT DEFAULT '[]',
+                    wallet_address TEXT,
+                    contract_address TEXT,
+                    last_tx_hash TEXT
                 )`,
                 (err) => (err ? reject(err) : resolve())
             );
+        });
+        await new Promise((resolve, reject) => {
+            db.all('PRAGMA table_info(user_progress)', [], (err, rows) => {
+                if (err) return reject(err);
+                const names = rows.map((row) => row.name);
+                const addColumn = (sql) => new Promise((resolveAdd, rejectAdd) => {
+                    db.run(sql, (err) => (err ? rejectAdd(err) : resolveAdd()));
+                });
+                const alters = [];
+                if (!names.includes('wallet_address')) alters.push(addColumn('ALTER TABLE user_progress ADD COLUMN wallet_address TEXT'));
+                if (!names.includes('contract_address')) alters.push(addColumn('ALTER TABLE user_progress ADD COLUMN contract_address TEXT'));
+                if (!names.includes('last_tx_hash')) alters.push(addColumn('ALTER TABLE user_progress ADD COLUMN last_tx_hash TEXT'));
+                Promise.all(alters).then(() => resolve()).catch(reject);
+            });
         });
         console.log('Progress storage: sqlite');
         return createSqliteAdapter(db);
@@ -206,6 +276,16 @@ async function createStorageAdapter() {
 }
 
 const storage = await createStorageAdapter();
+
+// Get all progress records
+app.get('/api/progress/all', async (req, res) => {
+    try {
+        const allProgress = await storage.getAll();
+        res.json(allProgress);
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Failed to fetch progress records' });
+    }
+});
 
 // Get progress for a user
 app.get('/api/progress/:userId', async (req, res) => {
@@ -230,7 +310,7 @@ app.get('/api/progress/:userId', async (req, res) => {
 
 // Update progress for a user
 app.post('/api/progress', async (req, res) => {
-    const { user_id, display_name, xp, completed_modules, completed_lessons, badges } = req.body;
+    const { user_id, display_name, xp, completed_modules, completed_lessons, badges, wallet_address, contract_address, last_tx_hash } = req.body;
 
     if (!user_id) {
         return res.status(400).json({ error: "user_id is required" });
@@ -243,7 +323,10 @@ app.post('/api/progress', async (req, res) => {
             xp: xp || 0,
             completed_modules: completed_modules || [],
             completed_lessons: completed_lessons || [],
-            badges: badges || []
+            badges: badges || [],
+            wallet_address: wallet_address || null,
+            contract_address: contract_address || null,
+            last_tx_hash: last_tx_hash || null
         });
         res.json({ success: true, message: "Progress updated successfully" });
     } catch (err) {
@@ -259,6 +342,96 @@ app.get('/api/leaderboard', async (req, res) => {
         res.json(rows);
     } catch (err) {
         return res.status(500).json({ error: err.message || 'Failed to fetch leaderboard' });
+    }
+});
+
+// Contract Address Endpoints
+// Get contract configuration
+app.get('/api/contract-config', async (req, res) => {
+    try {
+        res.json(contractConfig);
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Failed to fetch contract config' });
+    }
+});
+
+// Save contract address (called after deployment)
+app.post('/api/contract-config', async (req, res) => {
+    const { FhenixLearnBadge, network, chainId } = req.body;
+
+    if (!FhenixLearnBadge) {
+        return res.status(400).json({ error: "FhenixLearnBadge address is required" });
+    }
+
+    try {
+        contractConfig = {
+            FhenixLearnBadge,
+            network: network || 'arb-sepolia',
+            chainId: chainId || 421614,
+            lastUpdated: new Date().toISOString()
+        };
+        await saveContractConfig();
+        res.json({ success: true, config: contractConfig });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Failed to save contract config' });
+    }
+});
+
+// Update badge with on-chain info after minting
+app.post('/api/progress/:userId/badge/:badgeId', async (req, res) => {
+    const { userId, badgeId } = req.params;
+    const {
+        tokenId,
+        txHash,
+        contractAddress,
+        walletAddress,
+        badgeName,
+        badgeDescription
+    } = req.body;
+
+    if (!txHash) {
+        return res.status(400).json({ error: "txHash is required" });
+    }
+
+    try {
+        let progress = await storage.getByUserId(userId);
+        if (!progress) {
+            progress = defaultProgress(userId);
+        }
+
+        const badgeIndex = progress.badges.findIndex((b) => {
+            if (typeof b === 'string') return b === badgeId;
+            return b?.id === badgeId;
+        });
+
+        const updatedBadge = {
+            id: badgeId,
+            name: badgeName || undefined,
+            description: badgeDescription || undefined,
+            tokenId: tokenId ?? null,
+            txHash,
+            contractAddress: contractAddress || contractConfig.FhenixLearnBadge,
+            walletAddress,
+            mintedAt: new Date().toISOString()
+        };
+
+        progress.wallet_address = walletAddress || progress.wallet_address || null;
+        progress.contract_address = contractAddress || progress.contract_address || contractConfig.FhenixLearnBadge || null;
+        progress.last_tx_hash = txHash || progress.last_tx_hash || null;
+
+        if (badgeIndex === -1) {
+            progress.badges = [...(progress.badges || []), updatedBadge];
+        } else {
+            progress.badges[badgeIndex] = {
+                ...((typeof progress.badges[badgeIndex] === 'string') ? { id: badgeId } : progress.badges[badgeIndex]),
+                ...updatedBadge
+            };
+        }
+
+        await storage.upsert(progress);
+        res.json({ success: true, badge: updatedBadge });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Failed to update badge' });
     }
 });
 

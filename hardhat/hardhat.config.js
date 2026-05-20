@@ -1,10 +1,11 @@
 require("cofhe-hardhat-plugin");
 require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config({ path: "../.env" });
+require("dotenv").config({ path: require('path').join(__dirname, '../.env') });
 
 console.log("Loading config...");
 console.log("PRIVATE_KEY present:", !!process.env.PRIVATE_KEY);
-console.log("RPC URL:", process.env.ARBITRUM_SEPOLIA_RPC_URL);
+console.log("ARBITRUM_SEPOLIA_RPC_URL present:", !!process.env.ARBITRUM_SEPOLIA_RPC_URL);
+console.log("Network config ready for arb-sepolia");
 
 /** @type {import('hardhat/config').HardhatUserConfig} */
 module.exports = {

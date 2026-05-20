@@ -5,11 +5,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { BADGES } from './badges';
 
 export default function BadgeStrip({ earnedBadges = [] }) {
+  const earnedBadgeIds = earnedBadges.map((badge) => (typeof badge === 'string' ? badge : badge?.id)).filter(Boolean);
+
   return (
     <div className="flex flex-wrap gap-4">
       <TooltipProvider>
         {BADGES.map((badge) => {
-          const isUnlocked = earnedBadges.includes(badge.id);
+          const isUnlocked = earnedBadgeIds.includes(badge.id);
           
           return (
             <Tooltip key={badge.id}>

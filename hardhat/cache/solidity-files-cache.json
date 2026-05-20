@@ -1,9 +1,9 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/contracts/FhenixLearnBadge.sol": {
-      "lastModificationDate": 1773785513493,
-      "contentHash": "8fa1fec3776fefcc53c49be70fb50997",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\hardhat\\contracts\\FhenixLearnBadge.sol": {
+      "lastModificationDate": 1779158410558,
+      "contentHash": "b7eee3cfbe0bd80dc5e8029a2f93fb66",
       "sourceName": "contracts/FhenixLearnBadge.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -40,8 +40,8 @@
         "FhenixLearnBadge"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
-      "lastModificationDate": 1766461253062,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\access\\Ownable.sol": {
+      "lastModificationDate": 1779159385701,
       "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
       "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
       "solcConfig": {
@@ -78,9 +78,9 @@
         "Ownable"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol": {
-      "lastModificationDate": 1766461253052,
-      "contentHash": "0b00dd0d9f2738855f17aa283bfa3ff5",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\token\\ERC721\\extensions\\ERC721URIStorage.sol": {
+      "lastModificationDate": 1779159310117,
+      "contentHash": "221dcf8b1c5b31b54dc3f5adc039af6f",
       "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -109,19 +109,18 @@
       "imports": [
         "../ERC721.sol",
         "./IERC721Metadata.sol",
-        "../../../utils/Strings.sol",
         "../../../interfaces/IERC4906.sol",
         "../../../interfaces/IERC165.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.24"
       ],
       "artifacts": [
         "ERC721URIStorage"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1766461253082,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\Context.sol": {
+      "lastModificationDate": 1779159226199,
       "contentHash": "67bfbc07588eb8683b3fd8f6f909563e",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -156,10 +155,10 @@
         "Context"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
-      "lastModificationDate": 1766461253082,
-      "contentHash": "d8f70caf0e0c77dc908176ed44812fb7",
-      "sourceName": "@openzeppelin/contracts/utils/Strings.sol",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\interfaces\\IERC165.sol": {
+      "lastModificationDate": 1779159336698,
+      "contentHash": "947853028399b7de34bcc3704ee06e99",
+      "sourceName": "@openzeppelin/contracts/interfaces/IERC165.sol",
       "solcConfig": {
         "version": "0.8.25",
         "settings": {
@@ -185,19 +184,15 @@
         }
       },
       "imports": [
-        "./math/Math.sol",
-        "./math/SafeCast.sol",
-        "./math/SignedMath.sol"
+        "../utils/introspection/IERC165.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        ">=0.4.16"
       ],
-      "artifacts": [
-        "Strings"
-      ]
+      "artifacts": []
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/interfaces/IERC4906.sol": {
-      "lastModificationDate": 1766461253164,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\interfaces\\IERC4906.sol": {
+      "lastModificationDate": 1779159341709,
       "contentHash": "4386d2e9b1578157802062e156bd9ae1",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC4906.sol",
       "solcConfig": {
@@ -235,45 +230,9 @@
         "IERC4906"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/interfaces/IERC165.sol": {
-      "lastModificationDate": 1766461253164,
-      "contentHash": "947853028399b7de34bcc3704ee06e99",
-      "sourceName": "@openzeppelin/contracts/interfaces/IERC165.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../utils/introspection/IERC165.sol"
-      ],
-      "versionPragmas": [
-        ">=0.4.16"
-      ],
-      "artifacts": []
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol": {
-      "lastModificationDate": 1766461253051,
-      "contentHash": "522ec023bce510c30dfbf61584f5a190",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\token\\ERC721\\ERC721.sol": {
+      "lastModificationDate": 1779159308628,
+      "contentHash": "ad5144b924800b6f617bc84e4f1fb556",
       "sourceName": "@openzeppelin/contracts/token/ERC721/ERC721.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -309,14 +268,14 @@
         "../../interfaces/draft-IERC6093.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.24"
       ],
       "artifacts": [
         "ERC721"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
-      "lastModificationDate": 1766461253053,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\token\\ERC721\\extensions\\IERC721Metadata.sol": {
+      "lastModificationDate": 1779159348996,
       "contentHash": "136c64eca25bcb8a68f43ac6605559f9",
       "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol",
       "solcConfig": {
@@ -353,193 +312,8 @@
         "IERC721Metadata"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/math/SafeCast.sol": {
-      "lastModificationDate": 1766461253077,
-      "contentHash": "2adca1150f58fc6f3d1f0a0f22ee7cca",
-      "sourceName": "@openzeppelin/contracts/utils/math/SafeCast.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "SafeCast"
-      ]
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol": {
-      "lastModificationDate": 1766461253077,
-      "contentHash": "ae3528afb8bdb0a7dcfba5b115ee8074",
-      "sourceName": "@openzeppelin/contracts/utils/math/SignedMath.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./SafeCast.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "SignedMath"
-      ]
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/math/Math.sol": {
-      "lastModificationDate": 1766461253077,
-      "contentHash": "5ec781e33d3a9ac91ffdc83d94420412",
-      "sourceName": "@openzeppelin/contracts/utils/math/Math.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../Panic.sol",
-        "./SafeCast.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Math"
-      ]
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/Panic.sol": {
-      "lastModificationDate": 1766461253075,
-      "contentHash": "2133dc13536b4a6a98131e431fac59e1",
-      "sourceName": "@openzeppelin/contracts/utils/Panic.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Panic"
-      ]
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/interfaces/IERC721.sol": {
-      "lastModificationDate": 1766461253160,
-      "contentHash": "6b9716905fb42874ed1769ae7f7458b1",
-      "sourceName": "@openzeppelin/contracts/interfaces/IERC721.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../token/ERC721/IERC721.sol"
-      ],
-      "versionPragmas": [
-        ">=0.6.2"
-      ],
-      "artifacts": []
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
-      "lastModificationDate": 1766461253076,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\introspection\\IERC165.sol": {
+      "lastModificationDate": 1779159336893,
       "contentHash": "7074c93b1ea0a122063f26ddd1db1032",
       "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
       "solcConfig": {
@@ -574,8 +348,44 @@
         "IERC165"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol": {
-      "lastModificationDate": 1766461253051,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\interfaces\\IERC721.sol": {
+      "lastModificationDate": 1779159342220,
+      "contentHash": "6b9716905fb42874ed1769ae7f7458b1",
+      "sourceName": "@openzeppelin/contracts/interfaces/IERC721.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC721/IERC721.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.2"
+      ],
+      "artifacts": []
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\token\\ERC721\\IERC721.sol": {
+      "lastModificationDate": 1779159342326,
       "contentHash": "f62e11dbd302e17a5621a1438f4e054c",
       "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721.sol",
       "solcConfig": {
@@ -612,9 +422,50 @@
         "IERC721"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
-      "lastModificationDate": 1766461253158,
-      "contentHash": "5041977bbe908de2e6ed0270447f79ad",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\Strings.sol": {
+      "lastModificationDate": 1779159428696,
+      "contentHash": "d2fa243e766a193585b7e9bf36898d80",
+      "sourceName": "@openzeppelin/contracts/utils/Strings.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./math/Math.sol",
+        "./math/SafeCast.sol",
+        "./math/SignedMath.sol",
+        "./Bytes.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "Strings"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\interfaces\\draft-IERC6093.sol": {
+      "lastModificationDate": 1779159266622,
+      "contentHash": "bcc76f4747d56c28c40ae272ef3470a6",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -650,47 +501,9 @@
         "IERC721Errors"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
-      "lastModificationDate": 1766461253076,
-      "contentHash": "0906d06dca25210d4696dcef6dad2909",
-      "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./IERC165.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "ERC165"
-      ]
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/token/ERC721/utils/ERC721Utils.sol": {
-      "lastModificationDate": 1766461253052,
-      "contentHash": "4cefad279a37c895b709bce2b901816e",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\token\\ERC721\\utils\\ERC721Utils.sol": {
+      "lastModificationDate": 1779159310253,
+      "contentHash": "eaad77accc6e32b20dfbbbe9813e1dce",
       "sourceName": "@openzeppelin/contracts/token/ERC721/utils/ERC721Utils.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -727,8 +540,233 @@
         "ERC721Utils"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
-      "lastModificationDate": 1766461253051,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\introspection\\ERC165.sol": {
+      "lastModificationDate": 1779159294299,
+      "contentHash": "0906d06dca25210d4696dcef6dad2909",
+      "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./IERC165.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC165"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\Bytes.sol": {
+      "lastModificationDate": 1779159213970,
+      "contentHash": "3b32ea3a40a2d708f61e7161f081ca93",
+      "sourceName": "@openzeppelin/contracts/utils/Bytes.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./math/Math.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "Bytes"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\math\\Math.sol": {
+      "lastModificationDate": 1779159380164,
+      "contentHash": "5b8c6935ac52b7494df19d6feb38f5cc",
+      "sourceName": "@openzeppelin/contracts/utils/math/Math.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Panic.sol",
+        "./SafeCast.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Math"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\math\\SignedMath.sol": {
+      "lastModificationDate": 1779159428277,
+      "contentHash": "ae3528afb8bdb0a7dcfba5b115ee8074",
+      "sourceName": "@openzeppelin/contracts/utils/math/SignedMath.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "./SafeCast.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SignedMath"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\math\\SafeCast.sol": {
+      "lastModificationDate": 1779159428121,
+      "contentHash": "f28a38cd37f4225d0a91fb5405dd850f",
+      "sourceName": "@openzeppelin/contracts/utils/math/SafeCast.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "SafeCast"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\Panic.sol": {
+      "lastModificationDate": 1779159390607,
+      "contentHash": "2133dc13536b4a6a98131e431fac59e1",
+      "sourceName": "@openzeppelin/contracts/utils/Panic.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Panic"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\token\\ERC721\\IERC721Receiver.sol": {
+      "lastModificationDate": 1779159349162,
       "contentHash": "d61660a41ce200e99816e4734f7fd202",
       "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
       "solcConfig": {
@@ -763,9 +801,9 @@
         "IERC721Receiver"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol": {
-      "lastModificationDate": 1766461253071,
-      "contentHash": "260f3968eefa3bbd30520cff5384cd93",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\cryptography\\MessageHashUtils.sol": {
+      "lastModificationDate": 1779159384527,
+      "contentHash": "fab97298382d4c32182a66ec35255b71",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -795,15 +833,15 @@
         "../Strings.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.24"
       ],
       "artifacts": [
         "MessageHashUtils"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/cryptography/EIP712.sol": {
-      "lastModificationDate": 1766461253070,
-      "contentHash": "d67dfba302ed2489324d7584625c3bde",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\cryptography\\EIP712.sol": {
+      "lastModificationDate": 1779159279046,
+      "contentHash": "1351802e3aa364e90aacf03f65b78176",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/EIP712.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -835,14 +873,14 @@
         "../../interfaces/IERC5267.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.24"
       ],
       "artifacts": [
         "EIP712"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/interfaces/IERC5267.sol": {
-      "lastModificationDate": 1766461253162,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\interfaces\\IERC5267.sol": {
+      "lastModificationDate": 1779159341747,
       "contentHash": "6e00d2fe4bc0d5f1add753824498bb35",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC5267.sol",
       "solcConfig": {
@@ -877,9 +915,9 @@
         "IERC5267"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/ShortStrings.sol": {
-      "lastModificationDate": 1766461253082,
-      "contentHash": "c1be9487e5a64acf23b5d8028482e748",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\ShortStrings.sol": {
+      "lastModificationDate": 1779159428205,
+      "contentHash": "193937821a0ace7308133b4c68f6b9be",
       "sourceName": "@openzeppelin/contracts/utils/ShortStrings.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -915,8 +953,8 @@
         "ShortStrings"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/StorageSlot.sol": {
-      "lastModificationDate": 1766461253076,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\StorageSlot.sol": {
+      "lastModificationDate": 1779159428573,
       "contentHash": "e656d64c4ce918f3d13030b91c935134",
       "sourceName": "@openzeppelin/contracts/utils/StorageSlot.sol",
       "solcConfig": {
@@ -951,8 +989,8 @@
         "StorageSlot"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@fhenixprotocol/cofhe-mock-contracts/Permissioned.sol": {
-      "lastModificationDate": 1766461248719,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@fhenixprotocol\\cofhe-mock-contracts\\Permissioned.sol": {
+      "lastModificationDate": 1779158722539,
       "contentHash": "cd273284e8bc6b699d847560282f3c63",
       "sourceName": "@fhenixprotocol/cofhe-mock-contracts/Permissioned.sol",
       "solcConfig": {
@@ -992,9 +1030,9 @@
         "PermissionUtils"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol": {
-      "lastModificationDate": 1766461253069,
-      "contentHash": "baa80edaa1f29dd1b855e91b2bd7e0f2",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\cryptography\\SignatureChecker.sol": {
+      "lastModificationDate": 1779159428247,
+      "contentHash": "be270829ebfb6224e5d07ee6dced0541",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -1024,7 +1062,7 @@
         "./ECDSA.sol",
         "../../interfaces/IERC1271.sol",
         "../../interfaces/IERC7913.sol",
-        "../../utils/Bytes.sol"
+        "../Bytes.sol"
       ],
       "versionPragmas": [
         "^0.8.24"
@@ -1033,82 +1071,8 @@
         "SignatureChecker"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/interfaces/IERC7913.sol": {
-      "lastModificationDate": 1766461253160,
-      "contentHash": "a051a14c8a262117cb4c5f4cbd13ed95",
-      "sourceName": "@openzeppelin/contracts/interfaces/IERC7913.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.5.0"
-      ],
-      "artifacts": [
-        "IERC7913SignatureVerifier"
-      ]
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/Bytes.sol": {
-      "lastModificationDate": 1766461253078,
-      "contentHash": "62cf590c82c84688c7271f98842cf8f3",
-      "sourceName": "@openzeppelin/contracts/utils/Bytes.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "./math/Math.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": [
-        "Bytes"
-      ]
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/interfaces/IERC1271.sol": {
-      "lastModificationDate": 1766461253165,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\interfaces\\IERC1271.sol": {
+      "lastModificationDate": 1779159335552,
       "contentHash": "97c727fa357056eddfe826ab58943611",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC1271.sol",
       "solcConfig": {
@@ -1143,9 +1107,45 @@
         "IERC1271"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
-      "lastModificationDate": 1766461253069,
-      "contentHash": "81de029d56aa803972be03c5d277cb6c",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\interfaces\\IERC7913.sol": {
+      "lastModificationDate": 1779159371114,
+      "contentHash": "a051a14c8a262117cb4c5f4cbd13ed95",
+      "sourceName": "@openzeppelin/contracts/interfaces/IERC7913.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.5.0"
+      ],
+      "artifacts": [
+        "IERC7913SignatureVerifier"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@openzeppelin\\contracts\\utils\\cryptography\\ECDSA.sol": {
+      "lastModificationDate": 1779159278719,
+      "contentHash": "b038f3665d2262af34fe6009e3cd78dd",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -1179,9 +1179,9 @@
         "ECDSA"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/contracts/PrivateVoting.sol": {
-      "lastModificationDate": 1766461247974,
-      "contentHash": "19c825ea8c58e65b9f3cb8fc6521ff11",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\hardhat\\contracts\\PrivateVoting.sol": {
+      "lastModificationDate": 1779158410559,
+      "contentHash": "c80797068ca763ea360b7eb346f22285",
       "sourceName": "contracts/PrivateVoting.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -1219,8 +1219,45 @@
         "PrivateVoting"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@fhenixprotocol/cofhe-contracts/FHE.sol": {
-      "lastModificationDate": 1766461248717,
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@fhenixprotocol\\cofhe-contracts\\ICofhe.sol": {
+      "lastModificationDate": 1779158808120,
+      "contentHash": "10d87f17b894e4c5a461729e20e2dad1",
+      "sourceName": "@fhenixprotocol/cofhe-contracts/ICofhe.sol",
+      "solcConfig": {
+        "version": "0.8.25",
+        "settings": {
+          "evmVersion": "cancun",
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.8.25 <0.9.0"
+      ],
+      "artifacts": [
+        "ITaskManager",
+        "Utils"
+      ]
+    },
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\node_modules\\@fhenixprotocol\\cofhe-contracts\\FHE.sol": {
+      "lastModificationDate": 1779158807756,
       "contentHash": "dd7f1fd4947d81e0911f66a1ebafb840",
       "sourceName": "@fhenixprotocol/cofhe-contracts/FHE.sol",
       "solcConfig": {
@@ -1268,46 +1305,9 @@
         "Impl"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/node_modules/@fhenixprotocol/cofhe-contracts/ICofhe.sol": {
-      "lastModificationDate": 1766461248716,
-      "contentHash": "10d87f17b894e4c5a461729e20e2dad1",
-      "sourceName": "@fhenixprotocol/cofhe-contracts/ICofhe.sol",
-      "solcConfig": {
-        "version": "0.8.25",
-        "settings": {
-          "evmVersion": "cancun",
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.8.25 <0.9.0"
-      ],
-      "artifacts": [
-        "ITaskManager",
-        "Utils"
-      ]
-    },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/contracts/PrivateCounter.sol": {
-      "lastModificationDate": 1766461247973,
-      "contentHash": "8042160e4a9307db524f19feb168c21c",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\hardhat\\contracts\\PrivateCounter.sol": {
+      "lastModificationDate": 1779158410559,
+      "contentHash": "ecd5ea00527c36ea02bba0d8c091bae9",
       "sourceName": "contracts/PrivateCounter.sol",
       "solcConfig": {
         "version": "0.8.25",
@@ -1345,9 +1345,9 @@
         "PrivateCounter"
       ]
     },
-    "/Users/laurendutton/dev/fhenix-learn-41068f9e copy/hardhat/contracts/HiddenValue.sol": {
-      "lastModificationDate": 1766461247973,
-      "contentHash": "7d8c2524cd9552df13f65df74447fe6f",
+    "D:\\Yashu\\Study Material 2\\Sem 8\\Fhenix\\Audit\\Final2\\Fhenix-Learn\\hardhat\\contracts\\HiddenValue.sol": {
+      "lastModificationDate": 1779158410558,
+      "contentHash": "9e3af45f2741a9b21a72826423cc1af9",
       "sourceName": "contracts/HiddenValue.sol",
       "solcConfig": {
         "version": "0.8.25",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Award, X, Share2, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,21 +6,51 @@ import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import { usePrivy, useWallets, useSendTransaction } from '@privy-io/react-auth';
 import { useUserProgress } from '@/components/UserProgressContext';
-import { Interface } from 'ethers';
+import { Interface, ethers } from 'ethers';
+import badgeAbi from '@/lib/abis/FhenixLearnBadgeInterface.json';
 
-// FhenixLearnBadge ERC-721 on Arbitrum Sepolia — keep in sync with hardhat/deployments.json
-const BADGE_CONTRACT_ADDRESS = '0x910F079D4a48CbB8B28b791E8Cfd7B3c1c40eEAc';
 const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
+const badgeAddressFromEnv = import.meta.env.VITE_FHENIX_LEARN_BADGE_ADDRESS || null;
 
 export default function BadgeAwardModal({ isOpen, onClose, badge }) {
     const { width, height } = useWindowSize();
     const { ready, authenticated } = usePrivy();
     const { wallets } = useWallets();
-    const { progress } = useUserProgress();
+    const { user, progress, updateProgress } = useUserProgress();
     const [isMinting, setIsMinting] = useState(false);
     const [mintSuccess, setMintSuccess] = useState(false);
     const [mintError, setMintError] = useState(null);
     const [txHash, setTxHash] = useState(null);
+    const [badgeContractAddress, setBadgeContractAddress] = useState(badgeAddressFromEnv);
+    const [loadingAddress, setLoadingAddress] = useState(!badgeAddressFromEnv);
+    const apiUrl = import.meta.env.VITE_PROGRESS_API_ORIGIN || window.PROGRESS_API_ORIGIN || 'http://localhost:3101';
+
+    // Load contract address from backend
+    useEffect(() => {
+        if (badgeAddressFromEnv) {
+            setLoadingAddress(false);
+            return;
+        }
+
+        const fetchContractAddress = async () => {
+            try {
+                setLoadingAddress(true);
+                const response = await fetch(`${apiUrl}/api/contract-config`);
+                if (response.ok) {
+                    const config = await response.json();
+                    setBadgeContractAddress(config.FhenixLearnBadge);
+                } else {
+                    console.warn('Could not fetch contract config from backend');
+                }
+            } catch (err) {
+                console.warn('Error fetching contract address:', err);
+            } finally {
+                setLoadingAddress(false);
+            }
+        };
+
+        fetchContractAddress();
+    }, [apiUrl]);
 
     // Reset mint state whenever the modal opens for a (possibly new) badge so each badge shows Mint button
     useEffect(() => {
@@ -30,6 +60,9 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
             setTxHash(null);
         }
     }, [isOpen, badge?.id]);
+
+    const { sendTransaction } = useSendTransaction();
+    const retryAttemptRef = useRef(0);
 
     if (!isOpen || !badge) return null;
 
@@ -43,8 +76,6 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
     const completedModules = progress?.completed_modules?.length || 0;
     const progressPercent = Math.round((completedModules / totalModules) * 100);
 
-    const { sendTransaction } = useSendTransaction();
-
     const handleMint = async () => {
         if (!authenticated || !ready) {
             setMintError('Please connect your wallet first.');
@@ -54,12 +85,22 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
             setMintError('No wallet connected. Connect a wallet in Privy to mint.');
             return;
         }
+        if (!badgeContractAddress) {
+            setMintError('Contract address not loaded. Please try again.');
+            return;
+        }
 
         setIsMinting(true);
         setMintError(null);
         setTxHash(null);
 
         try {
+            const walletAddress = wallets[0]?.address;
+            if (!walletAddress) {
+                setMintError('No wallet address available. Try reconnecting your wallet in the Privy menu.');
+                return;
+            }
+
             // Standardized metadata with module id for indexing (badge.id = e.g. module-1, completion)
             const metadata = {
                 name: badge.name,
@@ -73,20 +114,14 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
             const metadataString = JSON.stringify(metadata);
             const metadataUri = `data:application/json;base64,${btoa(metadataString)}`;
 
-            const badgeInterface = new Interface([
-                'function mint(string memory uri) public returns (uint256)'
-            ]);
+            const badgeInterface = new Interface(badgeAbi);
             const encodedData = badgeInterface.encodeFunctionData('mint', [metadataUri]);
 
-            // Privy requires an explicit wallet address for sendTransaction (embedded or connected)
-            const walletAddress = wallets[0]?.address;
-            if (!walletAddress) {
-                setMintError('No wallet address available. Try reconnecting your wallet in the Privy menu.');
-                return;
-            }
+            console.log('[BadgeAwardModal] sending transaction', { to: badgeContractAddress, chainId: ARBITRUM_SEPOLIA_CHAIN_ID });
 
-            const txReceipt = await sendTransaction({
-                to: BADGE_CONTRACT_ADDRESS,
+            // Guard the Privy request with a local timeout so unhandled rejections don't hang the UI.
+            const sendPromise = sendTransaction({
+                to: badgeContractAddress,
                 data: encodedData,
                 chainId: ARBITRUM_SEPOLIA_CHAIN_ID
             }, {
@@ -94,16 +129,125 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
                 uiOptions: {
                     header: `Mint ${badge.name}`,
                     description: 'Minting your completion badge on Arbitrum Sepolia!',
-                    buttonText: 'Confirm Mint'
+                    buttonText: 'Confirm Mint',
+                    isCancellable: true
                 }
             });
 
-            const hash = txReceipt?.transactionHash || txReceipt?.hash;
-            if (hash) {
-                console.log('[BadgeAwardModal] Mint tx confirmed:', hash);
-                setTxHash(hash);
+            // Wait for either Privy response or a local timeout (90s). Adjust as needed.
+            let txReceipt;
+            try {
+                txReceipt = await Promise.race([
+                    sendPromise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Local wallet timeout')), 120000))
+                ]);
+            } catch (err) {
+                console.error('[BadgeAwardModal] sendTransaction error or timeout:', err);
+                const msg = (err?.message || '').toLowerCase();
+
+                // If this was a local timeout/expiry, attempt one automatic retry.
+                if ((msg.includes('expired') || msg.includes('timeout') || msg.includes('local wallet timeout')) && retryAttemptRef.current < 1) {
+                    retryAttemptRef.current += 1;
+                    setMintError('Privy request expired. Retrying once...');
+                    console.log('[BadgeAwardModal] scheduling one retry (attempt 1)');
+                    // small delay then retry; keep isMinting=true so spinner remains
+                    setTimeout(() => {
+                        handleMint();
+                    }, 800);
+                    return;
+                }
+
+                if (msg.includes('expired') || msg.includes('timeout')) {
+                    setMintError('Privy request expired. Please confirm the wallet prompt and try again.');
+                } else if (msg.includes('reject') || msg.includes('rejected')) {
+                    setMintError('Transaction was rejected.');
+                } else {
+                    setMintError(err?.message || 'Wallet request failed.');
+                }
+                setIsMinting(false);
+                return;
             }
+
+            const hash = txReceipt?.transactionHash || txReceipt?.hash || txReceipt?.receipt?.transactionHash;
+            if (!hash) {
+                throw new Error('Transaction submitted but no transaction hash returned.');
+            }
+
+            console.log('[BadgeAwardModal] Mint tx submitted:', hash);
+            setTxHash(hash);
             setMintSuccess(true);
+            // reset retry counter on success
+            retryAttemptRef.current = 0;
+
+            let tokenId = null;
+            try {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const receipt = await provider.waitForTransaction(hash);
+                if (receipt && receipt.logs) {
+                    const badgeEventTopic = badgeInterface.getEventTopic('BadgeMinted');
+                    const badgeLog = receipt.logs.find(
+                        (log) => log.topics[0] === badgeEventTopic && log.address.toLowerCase() === badgeContractAddress.toLowerCase()
+                    );
+                    if (badgeLog) {
+                        const parsed = badgeInterface.parseLog(badgeLog);
+                        tokenId = parsed.args.tokenId.toString();
+                    }
+                }
+            } catch (err) {
+                console.warn('[BadgeAwardModal] Could not derive tokenId from receipt:', err);
+            }
+
+            try {
+                const userId = user?.id || walletAddress.toLowerCase();
+                const saveBadgeResponse = await fetch(
+                    `${apiUrl}/api/progress/${userId}/badge/${badge.id}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            tokenId,
+                            txHash: hash,
+                            contractAddress: badgeContractAddress,
+                            walletAddress,
+                            badgeName: badge.name,
+                            badgeDescription: badge.description
+                        })
+                    }
+                );
+
+                if (saveBadgeResponse.ok) {
+                    const savedBadge = await saveBadgeResponse.json();
+                    console.log('[BadgeAwardModal] Badge saved to database:', savedBadge);
+
+                    if (updateProgress) {
+                        const existingBadges = Array.isArray(progress?.badges) ? progress.badges : [];
+                        const normalizedBadges = existingBadges.filter((b) => {
+                            if (typeof b === 'string') return b !== badge.id;
+                            return b?.id !== badge.id;
+                        });
+                        updateProgress({
+                            badges: [
+                                ...normalizedBadges,
+                                {
+                                    id: badge.id,
+                                    name: badge.name,
+                                    description: badge.description,
+                                    tokenId,
+                                    txHash: hash,
+                                    contractAddress: badgeContractAddress,
+                                    walletAddress,
+                                    mintedAt: new Date().toISOString()
+                                }
+                            ]
+                        });
+                    }
+                } else {
+                    console.warn('[BadgeAwardModal] Failed to save badge to database');
+                }
+            } catch (err) {
+                console.warn('[BadgeAwardModal] Error saving badge to database:', err);
+            }
+
         } catch (error) {
             const message = error?.message || String(error);
             const code = error?.code ?? error?.cause?.code;
@@ -240,6 +384,31 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
                             </div>
                         )}
 
+                        {mintError && (
+                            <div className="w-full mb-4 flex gap-2">
+                                <Button
+                                    onClick={() => {
+                                        retryAttemptRef.current = 0;
+                                        setMintError(null);
+                                    }}
+                                    variant="outline"
+                                    className="px-3 py-2 text-sm"
+                                >
+                                    Dismiss
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        retryAttemptRef.current = 0;
+                                        setMintError(null);
+                                        handleMint();
+                                    }}
+                                    className="px-3 py-2 text-sm bg-[#0AD9DC]"
+                                >
+                                    Retry
+                                </Button>
+                            </div>
+                        )}
+
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -250,10 +419,15 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
                                 <>
                                     <Button
                                         onClick={handleMint}
-                                        disabled={isMinting}
+                                        disabled={isMinting || loadingAddress || !badgeContractAddress}
                                         className="flex-1 bg-[#0AD9DC] hover:bg-[#0AD9DC]/90 text-[#011623] font-bold h-12 rounded-xl disabled:opacity-50"
                                     >
-                                        {isMinting ? (
+                                        {loadingAddress ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                Loading...
+                                            </>
+                                        ) : isMinting ? (
                                             <>
                                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                                 Minting...

@@ -25,7 +25,7 @@ export default function Profile() {
 
     const xp = progress?.xp || 0;
     const level = Math.floor(xp / 1000) + 1;
-    const earnedBadgeIds = progress?.badges || [];
+    const earnedBadgeIds = (progress?.badges || []).map((badge) => (typeof badge === 'string' ? badge : badge?.id)).filter(Boolean);
     const completedLessonIds = progress?.completed_lessons || [];
 
     // Calculate totals
