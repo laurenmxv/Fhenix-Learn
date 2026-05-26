@@ -1,0 +1,39 @@
+# Render deploy config for the Fhenix Learn API (server.js).
+#
+# Setup:
+#   1. Render dashboard → New → Blueprint → connect this repo
+#   2. Render auto-detects render.yaml and provisions the service
+#   3. Set ADMIN_USERNAME and ADMIN_PASSWORD in the service's Environment tab
+#      (do NOT use the default 'admin' / 'fhenix2024')
+#   4. After first deploy, copy the service URL (https://fhenix-learn-api.onrender.com)
+#   5. In Vercel → project → Settings → Environment Variables, add:
+#        VITE_PROGRESS_API_ORIGIN = <that URL>
+#      then redeploy Vercel.
+#
+# Free tier note: services spin down after 15 minutes of inactivity (first
+# request after sleep is slow). The filesystem is ephemeral, so progress.db
+# resets on every deploy/restart. For persistent data, uncomment the `disk`
+# block below — that requires upgrading the plan from `free` to `starter`.
+
+services:
+  - type: web
+    name: fhenix-learn-api
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /api/leaderboard
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+    # Uncomment after upgrading to a paid plan for persistent SQLite storage:
+    # plan: starter
+    # disk:
+    #   name: progress-data
+    #   mountPath: /opt/render/project/src
+    #   sizeGB: 1
