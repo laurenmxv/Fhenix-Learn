@@ -14,14 +14,16 @@ contract Counter {
 }`;
 
   const fheCode = `// Encrypted Counter
-import "@fhenixprotocol/contracts/FHE.sol";
+import "@fhenixprotocol/cofhe-contracts/FHE.sol";
 
 contract EncryptedCounter {
     euint32 private count;
 
-    function add(inEuint32 memory encryptedValue) public {
+    function add(InEuint32 calldata encryptedValue) external {
         euint32 value = FHE.asEuint32(encryptedValue);
         count = FHE.add(count, value);
+        FHE.allowThis(count);     // contract must allow itself to use 'count' next tx
+        FHE.allowPublic(count);   // marks 'count' decryptable via publishDecryptResult
     }
 }`;
 

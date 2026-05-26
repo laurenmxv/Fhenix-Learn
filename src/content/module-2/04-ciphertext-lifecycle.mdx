@@ -11,7 +11,7 @@ Encrypted values in CoFHE follow a clear lifecycle: creation, optional grants, a
 
 A handle is **created** when:
 
-- The contract converts client input: `FHE.asEuint64(inEuint64)` (from `InE*` struct).
+- The contract converts client input: `FHE.asEuint64(input)` where `input` is `InEuint64 calldata`.
 - The contract creates an encrypted literal: e.g. trivial encryption.
 - The contract gets a result from an FHE operation: e.g. `FHE.add(a, b)` returns a new handle.
 
@@ -22,9 +22,10 @@ At creation, the handle is usable in the **current transaction** (transaction-sc
 To use the handle **after** the current transaction, the contract must **grant** access:
 
 - **allowThis(handle):** So the contract can use it in a later call.
-- **allowSender(handle):** So the sender’s client can decrypt (with a permit).
+- **allowSender(handle):** So the sender's client can decrypt (with a permit).
 - **allow(handle, account):** So a specific account can decrypt or use it.
 - **allowTransient(handle, account):** Explicitly grant same-tx access to a specific address.
+- **allowPublic(handle):** Anyone may request decryption from the Threshold Network. Required before `publishDecryptResult` or `decryptForTx(...).withoutPermit()`.
 
 Without a persistent grant, the handle cannot be decrypted by the client or reused on-chain in a later tx.
 

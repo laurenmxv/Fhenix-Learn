@@ -1,51 +1,98 @@
 const hre = require("hardhat");
 const fs = require("fs");
+const { Encryptable } = require("@cofhe/sdk");
+const { createCofheConfig, createCofheClient } = require("@cofhe/sdk/node");
+const { HardhatSignerAdapter } = require("@cofhe/sdk/adapters");
+const { arbSepolia } = require("@cofhe/sdk/chains");
+
+// End-to-end smoke test against a live network.
+// Runs: encrypt → write → allowPublic → decryptForTx → publishDecryptResult → getDecryptResultSafe.
+// NOTE: hre.cofhe.createClientWithBatteries forces environment:"hardhat" and impersonates, so it
+// only works against the local mock chain. For live arb-sepolia we go through @cofhe/sdk/node directly.
 
 async function main() {
     if (!fs.existsSync("deployments.json")) {
         console.error("deployments.json not found. Run deploy script first.");
         process.exit(1);
     }
-
     const deployments = JSON.parse(fs.readFileSync("deployments.json"));
-    console.log("Running smoke test on network:", hre.network.name);
-    console.log("Using deployments:", deployments);
+    console.log("Smoke test on:", hre.network.name);
+    console.log("Deployments:", deployments);
 
     if (hre.network.name !== deployments.network) {
-        console.warn("Warning: Network mismatch between config and deployments file.");
+        console.warn("WARN: network mismatch between hardhat config and deployments file.");
     }
 
     const [signer] = await hre.ethers.getSigners();
-    console.log("Testing with account:", signer.address);
+    console.log("Signer:", signer.address);
 
-    // Test PrivateCounter
-    const PrivateCounter = await hre.ethers.getContractFactory("PrivateCounter");
-    const counter = PrivateCounter.attach(deployments.PrivateCounter);
+    const { publicClient, walletClient } = await HardhatSignerAdapter(signer);
+    const cofheClient = createCofheClient(createCofheConfig({ supportedChains: [arbSepolia] }));
+    await cofheClient.connect(publicClient, walletClient);
+    console.log("CoFHE client connected");
 
-    console.log("Checking PrivateCounter...");
-    // We can't easily check the value without a permit, but we can try to call a view function if we had one that didn't require permit.
-    // But getCounterSealed requires permit.
+    await smokeHiddenValue(deployments, signer, cofheClient);
+    await smokePrivateCounter(deployments, signer, cofheClient);
+    console.log("All smoke tests passed.");
+}
 
-    // We can try to increment with a dummy encrypted value (it will likely fail on-chain decryption if invalid, or just add garbage).
-    // Constructing a valid ciphertext client-side requires the CoFHE SDK with a valid keypair.
-    // For smoke test, we can just check if we can estimate gas for increment.
+async function smokeHiddenValue(deployments, signer, cofheClient) {
+    console.log("\n=== HiddenValue ===");
+    const hidden = await hre.ethers.getContractAt("HiddenValue", deployments.HiddenValue, signer);
 
-    try {
-        // Mock encrypted input (just random bytes, will fail decryption but proves contract exists)
-        // Actually, we need a valid handle if we want to avoid revert during input verification?
-        // No, FHE.asEuint32 expects a valid ciphertext.
+    const plaintext = 42;
+    const [enc] = await cofheClient.encryptInputs([Encryptable.uint32(BigInt(plaintext))]).execute();
+    console.log("Encrypted 42 → ctHash:", enc.ctHash);
 
-        console.log("PrivateCounter attached at", deployments.PrivateCounter);
-    } catch (e) {
-        console.error("Failed to interact with PrivateCounter:", e);
+    await (await hidden.set(enc)).wait();
+    console.log("set() ok");
+
+    await (await hidden.allowReveal()).wait();
+    console.log("allowReveal() ok");
+
+    const handle = await hidden.get();
+    const { decryptedValue, signature } = await cofheClient
+        .decryptForTx(handle)
+        .withoutPermit()
+        .execute();
+    console.log("decryptForTx →", decryptedValue.toString());
+
+    if (decryptedValue !== BigInt(plaintext)) {
+        throw new Error(`HiddenValue mismatch: expected ${plaintext}, got ${decryptedValue}`);
     }
 
-    // Test PrivateVoting
-    const PrivateVoting = await hre.ethers.getContractFactory("PrivateVoting");
-    const voting = PrivateVoting.attach(deployments.PrivateVoting);
-    console.log("PrivateVoting attached at", deployments.PrivateVoting);
+    await (await hidden.publishRevealedValue(Number(decryptedValue), signature)).wait();
+    console.log("publishRevealedValue() ok");
 
-    console.log("Smoke test finished (basic attachment check).");
+    const revealed = await hidden.revealedValue();
+    if (Number(revealed) !== plaintext) {
+        throw new Error(`HiddenValue.revealedValue mismatch: expected ${plaintext}, got ${revealed}`);
+    }
+    console.log("revealedValue:", revealed.toString());
+}
+
+async function smokePrivateCounter(deployments, signer, cofheClient) {
+    console.log("\n=== PrivateCounter ===");
+    const counter = await hre.ethers.getContractAt("PrivateCounter", deployments.PrivateCounter, signer);
+
+    const inc = 7;
+    const [enc] = await cofheClient.encryptInputs([Encryptable.uint32(BigInt(inc))]).execute();
+    await (await counter.increment(enc)).wait();
+    console.log("increment(7) ok");
+
+    const handle = await counter.getCounter();
+    const { decryptedValue, signature } = await cofheClient
+        .decryptForTx(handle)
+        .withoutPermit()
+        .execute();
+    console.log("decryptForTx →", decryptedValue.toString());
+
+    await (await counter.publishCounterValue(Number(decryptedValue), signature)).wait();
+    console.log("publishCounterValue() ok");
+
+    const [value, ready] = await counter.getCounterValue();
+    if (!ready) throw new Error("Counter not ready after publish");
+    console.log("getCounterValue:", value.toString(), "ready:", ready);
 }
 
 main()

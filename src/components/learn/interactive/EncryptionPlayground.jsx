@@ -250,13 +250,6 @@ export default function EncryptionPlayground() {
                                         </pre>
                                     </div>
 
-                                    {encryptedValue.simulated && (
-                                        <div className="text-xs text-yellow-300 bg-yellow-500/10 p-3 rounded-lg border border-yellow-500/20 mb-4">
-                                            CoFHE is not fully initialized in this session, so this playground is displaying a simulated
-                                            InEuint32 ciphertext object for demonstration.
-                                        </div>
-                                    )}
-
                                     <div className="flex items-center gap-2 text-xs text-slate-400 bg-[#0AD9DC]/5 p-3 rounded-lg border border-[#0AD9DC]/10">
                                         <Shield className="w-4 h-4 text-[#0AD9DC] shrink-0" />
                                         The blockchain only sees this. The mathematical properties allow operations

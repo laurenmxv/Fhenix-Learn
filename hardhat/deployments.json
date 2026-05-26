@@ -2,5 +2,8 @@
   "FhenixLearnBadge": "0x20D950f935A19A0370fE0420Bd964A174E788659",
   "network": "arb-sepolia",
   "chainId": 421614,
-  "timestamp": "2026-05-19T09:00:44.360Z"
+  "timestamp": "2026-05-26T00:22:12.495Z",
+  "HiddenValue": "0xF28aB79b7938f786B74385D8e6666f018De54a18",
+  "PrivateCounter": "0xfa22C0fD89FDC14569d6C2646A3459582b878Ea3",
+  "PrivateVoting": "0x2F546aE9e0e9f8C5E92Ae8a001fc21256Cd7eB81"
 }

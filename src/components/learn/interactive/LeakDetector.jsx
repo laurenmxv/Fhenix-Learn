@@ -37,7 +37,7 @@ const LEVELS = [
     ],
     leaks: [5], // Index of the 'if' line
     explanations: {
-      5: "CRITICAL LEAK: Decrypting a condition to use in an 'if' statement reveals the private boolean value to all observers.",
+      5: "CRITICAL LEAK: any code that reveals an ebool and then branches on it leaks the condition. If you genuinely need to reveal a value, use the publishDecryptResult flow (allowPublic + decryptForTx) — but don't branch on the revealed value inside the same transaction.",
       2: "Safe: Comparing encrypted values produces an encrypted boolean (ebool). No leak yet.",
       6: "Reverting inside a conditional branch reveals which path was taken, leaking the condition.",
     },
@@ -46,25 +46,27 @@ const LEVELS = [
   {
     id: 2,
     title: "The Revert Leak",
-    description: "require() statements can be dangerous with encrypted data.",
+    description: "Reverting based on a private condition leaks that condition. Find the leak.",
     code: [
-      "function bid(euint32 bidAmount) public {",
+      "function bid(InEuint32 calldata encryptedBid) external {",
+      "    euint32 newBid = FHE.asEuint32(encryptedBid);",
       "    euint32 minBid = FHE.asEuint32(50);",
+      "    ebool ok = FHE.gt(newBid, minBid);",
       "",
-      "    // Enforce minimum bid",
-      "    FHE.req(bidAmount.gt(minBid));",
+      "    // Reveal-then-branch: anti-pattern",
+      "    FHE.allowPublic(ok);",
+      "    require(FHE.getDecryptResult(ok), 'bid too low');",
       "",
-      "    // Alternative approach",
-      "    require(bidAmount.gt(minBid));",
-      "",
-      "    balances[msg.sender] = bidAmount;",
+      "    highestBid = newBid;",
+      "    FHE.allowThis(highestBid);",
       "}"
     ],
-    leaks: [7], // require(bidAmount.gt(minBid))
+    leaks: [6], // require(FHE.getDecryptResult(ok))
     explanations: {
-      4: "Safe: FHE.req checks a condition optimistically during execution but verifies it later via ZK/FHE validation without revealing it on-chain immediately in a way that blocks block inclusion based on logic (simplified). Actually, FHE.req is often a specific library feature. In standard FHE context, 'require' on encrypted bool is the main issue.",
-      7: "LEAK: 'require' forces the transaction to revert if false. Observers see the revert and know the encrypted condition was false.",
-      9: "Writing encrypted data to storage is safe."
+      3: "Safe: comparing two encrypted values produces an encrypted ebool — no leak yet.",
+      5: "Note: allowPublic alone isn't a leak. The leak comes from acting on the revealed result inside the tx.",
+      6: "LEAK: require() reverts when ok is false, and observers see the revert. The encrypted comparison's outcome becomes public via tx success/failure. Use FHE.select with a no-op state update instead.",
+      9: "Writing an encrypted handle to storage is safe (the storage slot holds a handle, not a plaintext)."
     },
     safeExplanation: "This operation is FHE-safe."
   },

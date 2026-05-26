@@ -20,6 +20,9 @@ app.use(express.json());
 // Contract address storage
 let contractConfig = {
     FhenixLearnBadge: null,
+    HiddenValue: null,
+    PrivateCounter: null,
+    PrivateVoting: null,
     network: 'arb-sepolia',
     chainId: 421614,
     lastUpdated: null
@@ -355,19 +358,24 @@ app.get('/api/contract-config', async (req, res) => {
     }
 });
 
-// Save contract address (called after deployment)
+// Save contract addresses (called after deployment). Merges into existing config so
+// partial updates (e.g. only FHE contracts, leaving Badge intact) work via the same endpoint.
 app.post('/api/contract-config', async (req, res) => {
-    const { FhenixLearnBadge, network, chainId } = req.body;
+    const { FhenixLearnBadge, HiddenValue, PrivateCounter, PrivateVoting, network, chainId } = req.body;
 
-    if (!FhenixLearnBadge) {
-        return res.status(400).json({ error: "FhenixLearnBadge address is required" });
+    if (!FhenixLearnBadge && !HiddenValue && !PrivateCounter && !PrivateVoting) {
+        return res.status(400).json({ error: "At least one contract address is required" });
     }
 
     try {
         contractConfig = {
-            FhenixLearnBadge,
-            network: network || 'arb-sepolia',
-            chainId: chainId || 421614,
+            ...contractConfig,
+            ...(FhenixLearnBadge && { FhenixLearnBadge }),
+            ...(HiddenValue && { HiddenValue }),
+            ...(PrivateCounter && { PrivateCounter }),
+            ...(PrivateVoting && { PrivateVoting }),
+            network: network || contractConfig.network || 'arb-sepolia',
+            chainId: chainId || contractConfig.chainId || 421614,
             lastUpdated: new Date().toISOString()
         };
         await saveContractConfig();

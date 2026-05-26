@@ -1,3 +1,7 @@
+// Deploys only the FHE-critical contracts (HiddenValue, PrivateCounter, PrivateVoting).
+// Merges new addresses into deployments.json without touching FhenixLearnBadge — re-use
+// the existing badge deployment.
+
 const hre = require("hardhat");
 const fs = require("fs");
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
@@ -5,14 +9,14 @@ const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fet
 async function main() {
     const networkName = hre.network.name;
     const [signer] = await hre.ethers.getSigners();
-    console.log("Deploying to network:", networkName);
+    console.log("Network:", networkName);
     console.log("Deployer:", signer.address);
 
-    const FhenixLearnBadge = await hre.ethers.getContractFactory("FhenixLearnBadge");
-    const badge = await FhenixLearnBadge.deploy();
-    await badge.waitForDeployment();
-    const badgeAddress = await badge.getAddress();
-    console.log("FhenixLearnBadge:", badgeAddress);
+    let prev = {};
+    if (fs.existsSync("deployments.json")) {
+        prev = JSON.parse(fs.readFileSync("deployments.json"));
+        if (prev.FhenixLearnBadge) console.log("Keeping FhenixLearnBadge:", prev.FhenixLearnBadge);
+    }
 
     const HiddenValue = await hre.ethers.getContractFactory("HiddenValue");
     const hidden = await HiddenValue.deploy();
@@ -26,7 +30,7 @@ async function main() {
     const counterAddress = await counter.getAddress();
     console.log("PrivateCounter:", counterAddress);
 
-    // 1 day voting window for the demo.
+    // 1-day voting window for the demo contract.
     const PrivateVoting = await hre.ethers.getContractFactory("PrivateVoting");
     const voting = await PrivateVoting.deploy(24n * 60n * 60n);
     await voting.waitForDeployment();
@@ -34,7 +38,7 @@ async function main() {
     console.log("PrivateVoting:", votingAddress);
 
     const deployments = {
-        FhenixLearnBadge: badgeAddress,
+        ...prev,
         HiddenValue: hiddenAddress,
         PrivateCounter: counterAddress,
         PrivateVoting: votingAddress,

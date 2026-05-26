@@ -342,8 +342,10 @@ contract HiddenValue {
     euint32 private val;
 
     // 2. Implement a setter that takes an encrypted input
-    function set(inEuint32 memory v) public {
+    function set(InEuint32 calldata v) public {
         val = FHE.asEuint32(v);
+        FHE.allowThis(val);
+        FHE.allowSender(val);
     }
 
     // 3. Implement a view function to prove it's encrypted (simulated)
@@ -364,8 +366,10 @@ In this challenge, you will verify that data is truly encrypted.
 \`\`\`solidity
 contract HiddenValue {
     euint32 private val;
-    function set(inEuint32 memory v) public {
+    function set(InEuint32 calldata v) public {
         val = FHE.asEuint32(v);
+        FHE.allowThis(val);
+        FHE.allowSender(val);
     }
 }
 \`\`\`
@@ -586,18 +590,22 @@ contract HiddenValue {
 contract FirstEncryptedOperation {
     euint8 public stored;
 
-    function submit(InEuint8 memory input) public {
+    function submit(InEuint8 calldata input) external {
         // 1. Convert input wrapper -> encrypted compute type
         euint8 x = FHE.asEuint8(input);
 
-        // 2. Trivially encrypt a literal
+        // 2. Trivially encrypt a literal (NOTE: this value is public)
         euint8 two = FHE.asEuint8(2);
 
         // 3. Perform encrypted arithmetic
-        euint8 result = x * two;  // encrypted double
+        euint8 result = FHE.mul(x, two);  // encrypted double
 
         // 4. Store encrypted result
         stored = result;
+
+        // 5. Grant the contract permission to use 'stored' later.
+        //    Without allowThis, every future FHE op on 'stored' reverts.
+        FHE.allowThis(stored);
     }
 }`,
         content: `
@@ -613,25 +621,28 @@ contract FirstEncryptedOperation {
 
   \`\`\`solidity
   // SPDX-License-Identifier: MIT
-  pragma solidity ^0.8.18;
+  pragma solidity ^0.8.25;
 
-  import {FHE, InEuint8, euint8} from "@fhenixprotocol/contracts/FHE.sol";
+  import "@fhenixprotocol/cofhe-contracts/FHE.sol";
 
   contract FirstEncryptedOperation {
     euint8 public stored;
 
-    function submit(InEuint8 memory input) public {
+    function submit(InEuint8 calldata input) external {
         // 1. Convert input wrapper -> encrypted compute type
         euint8 x = FHE.asEuint8(input);
 
-        // 2. Trivially encrypt a literal
+        // 2. Trivially encrypt a public literal
         euint8 two = FHE.asEuint8(2);
 
         // 3. Perform encrypted arithmetic
-        euint8 result = x * two;  // encrypted double
+        euint8 result = FHE.mul(x, two);  // encrypted double
 
         // 4. Store encrypted result
         stored = result;
+
+        // 5. Persist ACL: contract must allow itself to use 'stored' later
+        FHE.allowThis(stored);
     }
   }
   \`\`\`
@@ -682,16 +693,21 @@ contract FirstEncryptedOperation {
 # Core Data Flows
 
 1. **Encryption Request Flow**
-   - User encrypts locally -> Sends Transaction with \`inEuint\` -> Validator verifies ZK proof -> Contract converts to Handle.
+   - User encrypts locally -> Sends Transaction with \`InEuintX\` -> Validator verifies ZK proof -> Contract converts to Handle.
 
 2. **FHE Operation Flow**
    - Contract calls \`FHE.add(a, b)\` -> Emits event -> Coprocessor catches event -> Computes result -> Stores result in registry -> Returns new Handle to contract execution.
 
-3. **Decryption Request Flow**
-   - Contract calls \`FHE.decrypt(ciphertext)\` (usually restricted!) -> Coprocessor requests threshold signature -> Nodes sign partial keys -> Keys aggregated -> Plaintext revealed to contract.
-   
-4. **Seal/Unseal Flow**
-   - Used for viewing data. User signs a permit -> Contract re-encrypts data with user's public key -> User decrypts locally.
+3. **Public Reveal Flow (allowPublic + publishDecryptResult)**
+   - Contract calls \`FHE.allowPublic(handle)\` marking the value decryptable by anyone.
+   - Off-chain: client calls \`client.decryptForTx(handle).withoutPermit().execute()\` and gets back \`{ decryptedValue, signature }\` from the Threshold Network.
+   - On-chain: anyone submits \`FHE.publishDecryptResult(handle, plaintext, signature)\` to record the verified plaintext.
+   - Anyone can then read it via \`FHE.getDecryptResultSafe(handle)\`.
+
+4. **View-Only Decryption Flow (decryptForView + permit)**
+   - Used for per-user UI display. Caller already has ACL on the handle (e.g., via \`FHE.allowSender\`).
+   - Client signs an EIP-712 self-permit (\`client.permits.getOrCreateSelfPermit\`).
+   - Client calls \`client.decryptForView(handle, type).execute()\` — the Threshold Network reveals the value to the permit holder. Nothing is published on-chain.
         `
       },
       {
@@ -709,10 +725,11 @@ contract FirstEncryptedOperation {
 contract TraceTransaction {
     euint32 public result;
 
-    function execute(InEuint32 memory encryptedInput) public {
+    function execute(InEuint32 calldata encryptedInput) external {
         euint32 x = FHE.asEuint32(encryptedInput);
         euint32 five = FHE.asEuint32(5);
-        result = x + five;
+        result = FHE.add(x, five);
+        FHE.allowThis(result);  // contract must allow itself to use 'result' later
     }
 }`,
         content: `
@@ -776,34 +793,68 @@ euint32 newBalance = FHE.select(isAffordable, FHE.sub(balance, amount), balance)
 # Avoiding Information Leaks
 
 **Leak Vectors:**
-1. **Bad Events:** Emitting \`FHE.decrypt(val)\` creates a permanent public log of the value.
-2. **Execution Paths:** If you decrypt a boolean and then use it in a standard \`if\` statement, you leak which branch was taken.
-3. **Reverts:** Reverting based on a decrypted check reveals the check failed.
+1. **Branching on plaintext:** If you reveal an encrypted boolean and then use it in a standard \`if\` statement, you leak which branch was taken.
+2. **Reverts:** Reverting based on a revealed check leaks which branch was taken — observers see the revert.
+3. **Pattern leakage in events:** Even an event with no encrypted payload (e.g., \`event TransferOccurred(address from, address to)\`) leaks the participant graph. Confidentiality ≠ anonymity.
 
 **Safe Evaluation Patterns:**
-- **Select-based fail states:** Instead of reverting, perform a "no-op" state update if the condition fails (like the balance example above).
+- **Select-based fail states:** Instead of reverting, perform a "no-op" update if the condition fails (the \`FHE.select(isAffordable, balance - amount, balance)\` pattern above).
 - **Min/Max Clamping:** Use \`FHE.min\` and \`FHE.max\` to keep values within bounds without branching.
+
+**When you DO want to reveal:** use the canonical \`FHE.allowPublic\` + off-chain \`decryptForTx\` + on-chain \`FHE.publishDecryptResult\` flow (next lesson). The published plaintext is verified against a Threshold Network signature, so it's tamper-evident.
         `
       },
       {
         id: 'm4-l3',
-        title: 'Async Decryption Model',
+        title: 'Async Reveal: allowPublic + publishDecryptResult',
         type: 'reading',
         content: `
-# Async Decryption Model
+# Async Reveal: allowPublic + publishDecryptResult
 
-Decryption to plaintext is asynchronous because it requires coordination from the threshold network.
+Decryption is async because the Threshold Network has to sign the plaintext. The canonical flow has **three** moving parts: an on-chain permission grant, an off-chain SDK call that returns a signed plaintext, and a second on-chain call that verifies the signature and records the value.
 
-**Step 1: Request Decryption**
+## Step 1: Grant public decryption on-chain
+
 \`\`\`solidity
-uint256 requestId = FHE.reqDecrypt(encryptedValue, callbackCallback);
+function allowReveal() external {
+    FHE.allowPublic(counter);  // anyone can now request decryption from the Threshold Network
+}
 \`\`\`
 
-**Step 2: Callback**
-The coprocessor waits for the threshold network to decrypt, then calls your callback function with the plaintext value.
+## Step 2: Off-chain — ask the Threshold Network for a signed plaintext
 
-**Security:**
-Only the callback function receives the plaintext. This allows you to trigger logic based on hidden values (e.g., "Did the bid win?").
+\`\`\`typescript
+const { decryptedValue, signature } = await client
+    .decryptForTx(counter)        // handle from publicClient.readContract
+    .withoutPermit()              // value is allowPublic, no permit needed
+    .execute();
+\`\`\`
+
+## Step 3: Publish the verified plaintext on-chain
+
+\`\`\`solidity
+function publishCounterValue(uint32 plaintext, bytes calldata sig) external {
+    FHE.publishDecryptResult(counter, plaintext, sig);
+    // FHE.publishDecryptResult verifies 'sig' against the Threshold Network's key;
+    // if it passes, 'plaintext' is stored and any caller can read it.
+}
+\`\`\`
+
+## Step 4: Anyone reads the revealed value
+
+\`\`\`solidity
+function getCounterValue() external view returns (uint32 value, bool ready) {
+    (value, ready) = FHE.getDecryptResultSafe(counter);
+}
+\`\`\`
+
+## Why this replaces \`FHE.decrypt\`
+
+The legacy \`FHE.decrypt + FHE.getDecryptResult\` flow accepted plaintext without proof — observers couldn't verify the value matched the ciphertext. The new flow returns a Threshold-Network signature alongside the plaintext, and \`FHE.publishDecryptResult\` rejects the call if the signature doesn't match.
+
+## When to use the view-only flow instead
+
+If the value is for one specific user's UI (not a shared on-chain reveal), call \`client.decryptForView(handle, type).withPermit().execute()\` — it reveals locally to the permit holder and never touches the chain.
         `
       },
       {
@@ -817,12 +868,15 @@ Only the callback function receives the plaintext. This allows you to trigger lo
 Use \`FHE.select\` to update the highest bid without revealing if the new bid was higher.
 
 \`\`\`solidity
-function bid(inEuint32 memory encryptedBid) public {
-    euint32 bid = FHE.asEuint32(encryptedBid);
-    ebool isHighest = FHE.gt(bid, highestBid);
-    
-    // Update highest bid only if new bid is greater
-    highestBid = FHE.select(isHighest, bid, highestBid);
+function bid(InEuint32 calldata encryptedBid) external {
+    euint32 newBid = FHE.asEuint32(encryptedBid);
+    ebool isHighest = FHE.gt(newBid, highestBid);
+
+    // Update highest bid only if new bid is greater (branchless)
+    highestBid = FHE.select(isHighest, newBid, highestBid);
+
+    // Persist ACL so the contract can use highestBid in the next bid()
+    FHE.allowThis(highestBid);
 }
 \`\`\`
         `
@@ -833,49 +887,165 @@ function bid(inEuint32 memory encryptedBid) public {
     id: 'module-5',
     slug: 'access-control',
     title: 'Access Control and Encrypted State',
-    description: 'Managing permissions for encrypted data. Who can see what?',
+    description: 'The four ACL verbs, the two decrypt flows, and how to wire a UI to a permissioned contract.',
     estimatedHours: 4,
     lessons: [
       {
         id: 'm5-l1',
-        title: 'CoFHE Access Model',
+        title: 'The Four ACL Verbs',
         type: 'reading',
         content: `
-# CoFHE Access Model
+# The Four ACL Verbs
 
-Since data is on-chain, "Access Control" essentially means "Who has the right to Re-Encrypt this data for their own key?"
+ACL in CoFHE answers a single question: *who is allowed to ask the Threshold Network to decrypt this ciphertext?* Every encrypted operation — including reveal — checks the caller (or the contract) against this ACL.
 
-**Key Functions:**
-- \`FHE.seal(handle, publicKey)\`: Re-encrypts a value for a specific user's public key.
-- \`FHE.allow(handle, address)\`: (Conceptually) marks a handle as accessible by an address for viewing.
+There are four verbs and two query helpers in \`FHE.sol\`:
 
-**Viewing Encrypted State:**
-To view your encrypted balance:
-1. Generate a cryptographic **Permit** (signature) on the frontend.
-2. Call a view function on the contract with this permit.
-3. Contract validates permit.
-4. Contract calls \`FHE.seal(balance, userPublicKey)\`.
-5. Returns the "Sealed" ciphertext.
-6. Frontend decrypts it.
+| Verb | Grants access to | When to use |
+|------|------------------|-------------|
+| \`FHE.allowThis(handle)\` | \`address(this)\` | After **every** write to encrypted state, otherwise the contract cannot use the handle in the next transaction. The most-forgotten call in CoFHE. |
+| \`FHE.allow(handle, addr)\` | \`addr\` (persistent) | A specific external user needs to view the value off-chain via \`decryptForView\`. |
+| \`FHE.allowSender(handle)\` | \`msg.sender\` (persistent) | Shorthand for \`allow(handle, msg.sender)\`. Use when the lesson is "the caller may reveal what they just submitted". |
+| \`FHE.allowTransient(handle, addr)\` | \`addr\` (this tx only) | Cross-contract handoff inside a single transaction; cheaper than persistent allow. |
+| \`FHE.allowPublic(handle)\` | anyone | Public reveal path — required before \`publishDecryptResult\` or \`decryptForTx(...).withoutPermit()\`. |
+
+Query helpers: \`FHE.isAllowed(handle, addr)\` and \`FHE.isPubliclyAllowed(handle)\`.
+
+**Important:** the ACL is **per-ciphertext-handle**, not per-storage-slot. Every time you compute a new ciphertext (e.g. \`counter = FHE.add(counter, delta)\`), you create a new handle and must re-call \`FHE.allowThis(counter)\` on the new one.
+
+\`\`\`solidity
+// Canonical store-and-allow pattern
+function increment(InEuint32 calldata delta) external {
+    euint32 amount = FHE.asEuint32(delta);
+    counter = FHE.add(counter, amount);
+    FHE.allowThis(counter);   // contract may use 'counter' in future txs
+    FHE.allowPublic(counter); // anyone may request reveal
+}
+\`\`\`
+
+The ACL system is enforced by the on-chain ACL contract. Calls that violate ACL revert with \`ACLNotAllowed\` — if you see that error in a test, it's almost always a missing \`allowThis\`.
+        `
+      },
+      {
+        id: 'm5-l2',
+        title: 'Two Decrypt Flows: View vs Transact',
+        type: 'reading',
+        content: `
+# Two Decrypt Flows
+
+CoFHE offers two distinct ways to reveal an encrypted value off-chain. Picking the wrong one wastes a permit signature or a gas-paying transaction.
+
+## 1. \`decryptForView\` — "show me, just me"
+
+For purely UI reveals: a wallet wants to display its own encrypted balance. Nothing is published on chain.
+
+\`\`\`typescript
+const permit = await client.permits.getOrCreateSelfPermit();
+
+const balance = await client
+    .decryptForView(handle, FheTypes.Uint64)
+    .withPermit(permit)
+    .setChainId(arbSepolia.id)
+    .setAccount(account)
+    .execute();
+\`\`\`
+
+Pairing rule: the contract must have called \`FHE.allow(handle, account)\` (or \`FHE.allowSender(handle)\` while \`msg.sender == account\`). No \`allowPublic\` is required, and no on-chain tx is sent.
+
+## 2. \`decryptForTx\` — "reveal it, prove it, write it"
+
+For public, verifiable reveals: a finalized voting tally, an unshielded token amount, an oracle output. The Threshold Network signs the plaintext, and an on-chain function verifies the signature before storing it.
+
+\`\`\`typescript
+const { decryptedValue, signature } = await client
+    .decryptForTx(handle)
+    .withoutPermit()
+    .execute();
+\`\`\`
+
+Pairing rule: the contract must have called \`FHE.allowPublic(handle)\` first. After getting the signed plaintext, the client calls a contract function that runs \`FHE.publishDecryptResult(handle, plaintext, signature)\`.
+
+## Decision matrix
+
+| Question | Use |
+|----------|-----|
+| Only one user needs to see it? | \`decryptForView\` + \`allow\`/\`allowSender\` |
+| Everyone needs to see it, recorded on-chain? | \`allowPublic\` + \`decryptForTx\` + \`publishDecryptResult\` |
+| Two contracts in the same tx need access? | \`allowTransient\` |
+| Contract needs to use the handle in a later tx? | \`allowThis\` (always, regardless of who else has access) |
         `
       },
       {
         id: 'm5-final',
-        title: 'Challenge: Permissioned Viewer',
+        title: 'Challenge: Reveal a Voting Result',
         type: 'sandbox',
+        starterCode: `// Challenge: Wire up the canonical public reveal flow.
+// Pattern: allowPublic on-chain -> decryptForTx off-chain -> publishDecryptResult on-chain.
+
+contract PrivateVoting {
+    euint32 private yesVotes;
+    euint32 private noVotes;
+    uint64 public immutable endTime;
+    bool public finalized;
+
+    function finalize() external {
+        require(block.timestamp >= endTime, "voting open");
+        require(!finalized, "already finalized");
+        finalized = true;
+        FHE.allowPublic(yesVotes);
+        FHE.allowPublic(noVotes);
+    }
+
+    function publishResults(
+        uint32 yesPlain, bytes calldata yesSig,
+        uint32 noPlain,  bytes calldata noSig
+    ) external {
+        require(finalized, "not finalized");
+        FHE.publishDecryptResult(yesVotes, yesPlain, yesSig);
+        FHE.publishDecryptResult(noVotes, noPlain, noSig);
+    }
+
+    function getResults() external view returns (uint32 yes, uint32 no, bool ready) {
+        (uint32 yv, bool yr) = FHE.getDecryptResultSafe(yesVotes);
+        (uint32 nv, bool nr) = FHE.getDecryptResultSafe(noVotes);
+        return (yv, nv, yr && nr);
+    }
+}`,
         content: `
-# Challenge: Permissioned Viewer
+# Challenge: Reveal a Voting Result
 
-**Goal:**
-Create a function that only allows the owner to view the balance.
+**Goal:** publish the result of an encrypted yes/no vote using the canonical three-step flow.
 
-\`\`\`solidity
-function viewBalance(Permission memory permission) public view returns (string memory) {
-   // Validate permission...
-   // If valid:
-   return FHE.seal(balance, permission.publicKey);
-}
+## Off-chain (client SDK)
+
+\`\`\`typescript
+import { Encryptable, FheTypes } from '@cofhe/sdk';
+
+// 1. Wait for voting to close, then call finalize()
+await voting.write.finalize();
+
+// 2. Ask the Threshold Network for signed plaintext tallies
+const yesHandle = await voting.read.getYesVotes();
+const noHandle  = await voting.read.getNoVotes();
+
+const yesResult = await client.decryptForTx(yesHandle).withoutPermit().execute();
+const noResult  = await client.decryptForTx(noHandle).withoutPermit().execute();
+
+// 3. Publish on-chain
+await voting.write.publishResults([
+    yesResult.decryptedValue, yesResult.signature,
+    noResult.decryptedValue,  noResult.signature,
+]);
+
+// 4. Anyone reads the verified plaintext
+const [yes, no, ready] = await voting.read.getResults();
 \`\`\`
+
+## What this challenge teaches
+
+* **Pairing matrix:** \`allowPublic\` *only* makes sense alongside \`decryptForTx.withoutPermit()\` / \`publishDecryptResult\`. Mixing it with \`decryptForView\` would also work but defeats the purpose.
+* **Verification is on-chain:** \`publishDecryptResult\` rejects bogus plaintexts because the Threshold Network signature is verified inside FHE.sol — observers can trust the published number.
+* **Confidentiality ≠ anonymity:** the \`hasVoted\` mapping is plaintext by design (to prevent double-voting). Vote *values* are confidential; vote *participation* is public. That's a deliberate trade-off, not a bug.
         `
       }
     ]
@@ -898,8 +1068,9 @@ function viewBalance(Permission memory permission) public view returns (string m
 - [ ] **No Reverts on Secret Data:** Logic handles failure cases by preserving state mathematically.
 - [ ] **Input Validation:** Used \`FHE.asEuintX\` for all inputs.
 - [ ] **No Leaking Events:** Did not emit decrypted values unless strictly intended.
-- [ ] **Access Control:** View functions use Permits to verify identity before returning Sealed data.
-- [ ] **Type Safety:** Input types (\`inEuint\`) are never stored in state.
+- [ ] **Access Control:** Called \`FHE.allowThis\` after every stored encrypted write; used \`FHE.allowPublic\` only when public reveal is intended.
+- [ ] **Reveal Flow:** Used \`allowPublic\` + \`decryptForTx\` + \`publishDecryptResult\` for verifiable on-chain reveals; \`decryptForView\` + permit for UI-only reveals.
+- [ ] **Type Safety:** Input types (\`InEuintX\`) are never stored in state.
         `
       },
       {

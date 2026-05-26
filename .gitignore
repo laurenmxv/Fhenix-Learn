@@ -27,4 +27,14 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
+# Hardhat build outputs / cache
+hardhat/artifacts/
+hardhat/cache/
+hardhat/typechain-types/
+
+# Local progress DB
+progress.db
+progress.json
+
+# Vercel
+.vercel

@@ -2,60 +2,50 @@
 pragma solidity ^0.8.25;
 
 import "@fhenixprotocol/cofhe-contracts/FHE.sol";
-import "@fhenixprotocol/cofhe-mock-contracts/Permissioned.sol";
 
-/**
- * @title PrivateCounter
- * @notice Simple encrypted counter using Fhenix FHE
- */
-contract PrivateCounter is MockPermissioned {
+/// @title PrivateCounter
+/// @notice Encrypted counter using CoFHE. Demonstrates the canonical reveal flow:
+///         allowPublic → off-chain decryptForTx → publishDecryptResult → getDecryptResultSafe.
+/// @dev    The mock `Permissioned` base was removed; ACL is enforced by FHE.allow*.
+contract PrivateCounter {
 
-    // Encrypted counter
     euint32 private counter;
 
     event CounterIncremented(address indexed user);
+    event CounterRevealed(uint32 plaintext);
 
-    /**
-     * @notice Initialize encrypted counter
-     */
     constructor() {
         counter = FHE.asEuint32(0);
-
-        // Allow contract to use encrypted state
         FHE.allowThis(counter);
     }
 
-    /**
-     * @notice Increment counter using encrypted amount
-     */
-    function increment(
-        InEuint32 calldata encryptedAmount
-    ) external {
-
-        // Convert encrypted input
+    /// @notice Increment the counter by an encrypted amount.
+    function increment(InEuint32 calldata encryptedAmount) external {
         euint32 amount = FHE.asEuint32(encryptedAmount);
-
-        // Add encrypted values
         counter = FHE.add(counter, amount);
 
-        // Allow future contract operations
+        // Persist contract access; mark publicly decryptable so anyone can read.
         FHE.allowThis(counter);
-
-        // Allow sender access
-        FHE.allow(counter, msg.sender);
+        FHE.allowPublic(counter);
 
         emit CounterIncremented(msg.sender);
     }
 
-    /**
-     * @notice Return encrypted counter handle
-     * @dev Frontend must unseal client-side
-     */
-    function getCounter()
-        external
-        view
-        returns (euint32)
-    {
+    /// @notice Returns the encrypted counter handle.
+    function getCounter() external view returns (euint32) {
         return counter;
+    }
+
+    /// @notice Publish a Threshold-Network-signed plaintext for the current counter
+    ///         value. The client SDK produces `plaintext` and `sig` via
+    ///         `client.decryptForTx(counter).withoutPermit().execute()`.
+    function publishCounterValue(uint32 plaintext, bytes calldata sig) external {
+        FHE.publishDecryptResult(counter, plaintext, sig);
+        emit CounterRevealed(plaintext);
+    }
+
+    /// @notice Read the most recently published plaintext, reverting if none is ready.
+    function getCounterValue() external view returns (uint32 value, bool ready) {
+        (value, ready) = FHE.getDecryptResultSafe(counter);
     }
 }
