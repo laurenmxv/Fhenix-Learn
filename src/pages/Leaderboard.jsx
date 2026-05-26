@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trophy, Medal, Crown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
+import { apiUrl } from '@/lib/api-base';
 
 export default function Leaderboard() {
   const [leaders, setLeaders] = useState([]);
@@ -13,8 +14,7 @@ export default function Leaderboard() {
     const fetchData = async () => {
       setLoading(true);
       setError('');
-      const baseUrl = import.meta.env.VITE_PROGRESS_API_ORIGIN?.replace(/\/$/, '') || '';
-      const endpoint = `${baseUrl}/api/leaderboard?limit=50`;
+      const endpoint = apiUrl('/api/leaderboard?limit=50');
 
       try {
         const res = await fetch(endpoint);

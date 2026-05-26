@@ -1,6 +1,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
+import { apiUrl } from '@/lib/api-base';
 
 const UserProgressContext = createContext(null);
 
@@ -45,7 +46,7 @@ export function UserProgressProvider({ children }) {
 
         try {
             const walletParam = walletAddress ? `?wallet=${encodeURIComponent(walletAddress)}` : '';
-            const res = await fetchWithTimeout(`/api/progress/${userId}${walletParam}`, {
+            const res = await fetchWithTimeout(apiUrl(`/api/progress/${userId}${walletParam}`), {
                 cache: 'no-store'
             }, 3000);
 
@@ -87,7 +88,7 @@ export function UserProgressProvider({ children }) {
 
         // Persist to API
         try {
-            await fetchWithTimeout('/api/progress', {
+            await fetchWithTimeout(apiUrl('/api/progress'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

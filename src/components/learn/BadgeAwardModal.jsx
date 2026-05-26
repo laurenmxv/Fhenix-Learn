@@ -8,6 +8,7 @@ import { usePrivy, useWallets, useSendTransaction } from '@privy-io/react-auth';
 import { useUserProgress } from '@/components/UserProgressContext';
 import { Interface, ethers } from 'ethers';
 import badgeAbi from '@/lib/abis/FhenixLearnBadgeInterface.json';
+import { apiUrl } from '@/lib/api-base';
 
 const ARBITRUM_SEPOLIA_CHAIN_ID = 421614;
 const badgeAddressFromEnv = import.meta.env.VITE_FHENIX_LEARN_BADGE_ADDRESS || null;
@@ -23,7 +24,6 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
     const [txHash, setTxHash] = useState(null);
     const [badgeContractAddress, setBadgeContractAddress] = useState(badgeAddressFromEnv);
     const [loadingAddress, setLoadingAddress] = useState(!badgeAddressFromEnv);
-    const apiUrl = import.meta.env.VITE_PROGRESS_API_ORIGIN || window.PROGRESS_API_ORIGIN || 'http://localhost:3101';
 
     // Load contract address from backend
     useEffect(() => {
@@ -35,7 +35,7 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
         const fetchContractAddress = async () => {
             try {
                 setLoadingAddress(true);
-                const response = await fetch(`${apiUrl}/api/contract-config`);
+                const response = await fetch(apiUrl('/api/contract-config'));
                 if (response.ok) {
                     const config = await response.json();
                     setBadgeContractAddress(config.FhenixLearnBadge);
@@ -50,7 +50,7 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
         };
 
         fetchContractAddress();
-    }, [apiUrl]);
+    }, []);
 
     // Reset mint state whenever the modal opens for a (possibly new) badge so each badge shows Mint button
     useEffect(() => {
@@ -201,7 +201,7 @@ export default function BadgeAwardModal({ isOpen, onClose, badge }) {
             try {
                 const userId = user?.id || walletAddress.toLowerCase();
                 const saveBadgeResponse = await fetch(
-                    `${apiUrl}/api/progress/${userId}/badge/${badge.id}`,
+                    apiUrl(`/api/progress/${userId}/badge/${badge.id}`),
                     {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
