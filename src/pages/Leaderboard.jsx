@@ -88,10 +88,17 @@ export default function Leaderboard() {
               {error}
             </div>
           )}
-          <div className="col-span-6 md:col-span-7">User</div>
-          <div className="col-span-2 text-right">Badges</div>
-          <div className="col-span-2 text-right">XP</div>
         </div>
+
+        {/* Column headers */}
+        {leaders.length > 0 && (
+          <div className="grid grid-cols-12 gap-4 px-4 pb-3 mb-1 border-b border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <div className="col-span-2 md:col-span-1 text-center">Rank</div>
+            <div className="col-span-6 md:col-span-7">User</div>
+            <div className="col-span-2 text-right">Badges</div>
+            <div className="col-span-2 text-right">XP</div>
+          </div>
+        )}
 
         {/* List */}
         <div className="divide-y divide-white/5">
